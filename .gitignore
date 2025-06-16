@@ -1,0 +1,5 @@
+# Ignore everything in sim/
+tb/sim/*
+
+# Except explicitly allow Makefile
+!tb/sim/Makefile
