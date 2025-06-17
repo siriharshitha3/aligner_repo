@@ -1,11 +1,7 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_item_drv_slave.sv
-// Author:      Cristian Florin Slav
-// Date:        2024-01-07
-// Description: Class for the MD slave driving item.
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_ITEM_DRV_SLAVE_SV
 `define CFS_MD_ITEM_DRV_SLAVE_SV 
+
+
 
 class cfs_md_item_drv_slave extends cfs_md_item_drv;
 
@@ -34,5 +30,4 @@ class cfs_md_item_drv_slave extends cfs_md_item_drv;
 
 endclass
 
-`endif
-
+`endif  // CFS_MD_ITEM_DRV_SLAVE_SV

@@ -1,11 +1,6 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_driver_slave.sv
-// Author:      Cristian Florin Slav
-// Date:        2024-01-07
-// Description: Class for MD slave driver
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_DRIVER_SLAVE_SV
 `define CFS_MD_DRIVER_SLAVE_SV 
+
 
 class cfs_md_driver_slave #(
     int unsigned DATA_WIDTH = 32
@@ -86,5 +81,4 @@ class cfs_md_driver_slave #(
 
 endclass
 
-`endif
-
+`endif  // CFS_MD_DRIVER_SLAVE_SV

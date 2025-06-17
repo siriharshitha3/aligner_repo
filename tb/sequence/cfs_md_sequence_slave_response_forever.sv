@@ -1,10 +1,3 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_sequence_slave_response_forever.sv
-// Author:      Cristian Florin Slav
-// Date:        2024-01-08
-// Description: MD slave response sequence which will forever respond to
-//              the master requests
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_SEQUENCE_SLAVE_RESPONSE_FOREVER_SV
 `define CFS_MD_SEQUENCE_SLAVE_RESPONSE_FOREVER_SV 
 
@@ -26,5 +19,4 @@ class cfs_md_sequence_slave_response_forever extends cfs_md_sequence_base_slave;
 
 endclass
 
-`endif
-
+`endif  // CFS_MD_SEQUENCE_SLAVE_RESPONSE_FOREVER_SV

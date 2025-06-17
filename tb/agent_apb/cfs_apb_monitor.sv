@@ -1,45 +1,29 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_apb_monitor.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-09-16
-// Description: APB monitor class.
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_APB_MONITOR_SV
 `define CFS_APB_MONITOR_SV
 
-class cfs_apb_monitor extends uvm_monitor implements cfs_apb_reset_handler;
+class cfs_apb_monitor extends uvm_ext_monitor #(
+    .VIRTUAL_INTF(cfs_apb_vif),
+    .ITEM_MON(cfs_apb_item_mon)
+);
 
-  //Pointer to agent configuration
   cfs_apb_agent_config agent_config;
-
-  //Port for sending the collected item
-  uvm_analysis_port #(cfs_apb_item_mon) output_port;
-
-  //Process for collect_transactions() task
-  protected process process_collect_transactions;
 
   `uvm_component_utils(cfs_apb_monitor)
 
   function new(string name = "", uvm_component parent);
     super.new(name, parent);
-
-    output_port = new("output_port", this);
   endfunction
 
-  virtual task run_phase(uvm_phase phase);
-    forever begin
-      fork
-        begin
-          wait_reset_end();
-          collect_transactions();
+  virtual function void end_of_elaboration_phase(uvm_phase phase);
+    super.end_of_elaboration_phase(phase);
 
-          disable fork;
-        end
-      join
+    if ($cast(agent_config, super.agent_config) == 0) begin
+      `uvm_fatal("ALGORITHM_ISSUE", $sformatf("Could not cast %0s to %0s",
+                                              super.agent_config.get_type_name(),
+                                              "cfs_apb_agent_config"))
     end
-  endtask
+  endfunction
 
-  //Task which drives one single item on the bus
   protected virtual task collect_transaction();
     cfs_apb_vif vif = agent_config.get_vif();
     cfs_apb_item_mon item = cfs_apb_item_mon::type_id::create("item");
@@ -86,35 +70,6 @@ class cfs_apb_monitor extends uvm_monitor implements cfs_apb_reset_handler;
     @(posedge vif.pclk);
   endtask
 
-  //Task for collecting all transactions
-  protected virtual task collect_transactions();
-    fork
-      begin
-        process_collect_transactions = process::self();
-
-        forever begin
-          collect_transaction();
-        end
-
-      end
-    join
-  endtask
-
-  //Task for waiting the reset to be finished
-  protected virtual task wait_reset_end();
-    agent_config.wait_reset_end();
-  endtask
-
-  //Function to handle the reset
-  virtual function void handle_reset(uvm_phase phase);
-    if (process_collect_transactions != null) begin
-      process_collect_transactions.kill();
-
-      process_collect_transactions = null;
-    end
-  endfunction
-
 endclass
 
-`endif
-
+`endif  // CFS_APB_MONITOR_SV

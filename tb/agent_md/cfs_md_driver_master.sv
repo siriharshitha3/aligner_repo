@@ -1,9 +1,3 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_driver_master.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-12-17
-// Description: Class for MD master driver
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_DRIVER_MASTER_SV
 `define CFS_MD_DRIVER_MASTER_SV 
 
@@ -37,7 +31,7 @@ class cfs_md_driver_master #(
           "ALGORITHM_ISSUE",
           $sformatf(
               "Trying to drive an item with offset %0d and %0d bytes but the width of the data bus, in bytes, is %0d",
-              item.data.size(), item.offset, data_width_in_bytes))
+              item.offset, item.data.size(), data_width_in_bytes))
     end
 
     for (int i = 0; i < item.pre_drive_delay; i++) begin
@@ -92,5 +86,4 @@ class cfs_md_driver_master #(
 
 endclass
 
-`endif
-
+`endif  // CFS_MD_DRIVER_MASTER_SV

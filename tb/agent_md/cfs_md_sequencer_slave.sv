@@ -1,9 +1,3 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_sequencer_slave.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-12-17
-// Description: MD slave sequencer
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_SEQUENCER_SLAVE_SV
 `define CFS_MD_SEQUENCER_SLAVE_SV 
 
@@ -23,5 +17,4 @@ class cfs_md_sequencer_slave #(
 
 endclass
 
-`endif
-
+`endif  // CFS_MD_SEQUENCER_SLAVE_SV
