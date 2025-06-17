@@ -1,9 +1,3 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_sequence_base.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-12-17
-// Description: MD base sequence class.
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_SEQUENCE_BASE_SV
 `define CFS_MD_SEQUENCE_BASE_SV 
 
@@ -21,5 +15,4 @@ class cfs_md_sequence_base #(
 
 endclass
 
-`endif
-
+`endif  // CFS_MD_SEQUENCE_BASE_SV

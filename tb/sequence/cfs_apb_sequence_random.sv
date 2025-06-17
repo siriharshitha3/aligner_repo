@@ -1,15 +1,8 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_apb_sequence_random.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-08-22
-// Description: APB random sequence class.
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_APB_SEQUENCE_RANDOM_SV
-`define CFS_APB_SEQUENCE_RANDOM_SV 
+`define CFS_APB_SEQUENCE_RANDOM_SV
 
 class cfs_apb_sequence_random extends cfs_apb_sequence_base;
 
-  //NUmber of items to drive
   rand int unsigned num_items;
 
   constraint num_items_default {soft num_items inside {[1 : 10]};}
@@ -24,16 +17,10 @@ class cfs_apb_sequence_random extends cfs_apb_sequence_base;
     for (int i = 0; i < num_items; i++) begin
       cfs_apb_sequence_simple seq = cfs_apb_sequence_simple::type_id::create("seq");
 
-      void'(seq.randomize());
-
-      seq.start(m_sequencer, this);
-
-      //An alternative with macros is to use `uvm_do().
-      //`uvm_do(seq)
+      `uvm_do(seq)
     end
   endtask
 
 endclass
 
-`endif
-
+`endif  // CFS_APB_APB_SEQUENCE_RANDOM_SV

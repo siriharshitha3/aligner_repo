@@ -1,9 +1,3 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_apb_sequence_base.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-08-22
-// Description: APB base sequence class.
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_APB_SEQUENCE_BASE_SV
 `define CFS_APB_SEQUENCE_BASE_SV
 
@@ -11,7 +5,7 @@ class cfs_apb_sequence_base extends uvm_sequence #(
     .REQ(cfs_apb_item_drv)
 );
 
-  `uvm_declare_p_sequencer(cfs_apb_sequencer)
+  `uvm_declare_p_sequencer(uvm_ext_sequencer#(.ITEM_DRV(cfs_apb_item_drv)))
 
   `uvm_object_utils(cfs_apb_sequence_base)
 
@@ -21,5 +15,4 @@ class cfs_apb_sequence_base extends uvm_sequence #(
 
 endclass
 
-`endif
-
+`endif  // CFS_APB_SEQUENCE_BASE_SV

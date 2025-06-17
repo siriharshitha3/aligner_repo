@@ -1,11 +1,7 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_sequence_slave_response.sv
-// Author:      Cristian Florin Slav
-// Date:        2024-01-08
-// Description: MD slave response sequence
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_SEQUENCE_SLAVE_RESPONSE_SV
 `define CFS_MD_SEQUENCE_SLAVE_RESPONSE_SV 
+
+
 
 class cfs_md_sequence_slave_response extends cfs_md_sequence_base_slave;
 
@@ -34,5 +30,4 @@ class cfs_md_sequence_slave_response extends cfs_md_sequence_base_slave;
 
 endclass
 
-`endif
-
+`endif  // CFS_MD_SEQUENCE_SLAVE_RESPONSE_SV

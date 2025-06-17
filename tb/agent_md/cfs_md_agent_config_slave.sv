@@ -1,15 +1,7 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_agent_config_slave.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-12-02
-// Description: MD slave agent configuration class.
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_AGENT_CONFIG_SLAVE_SV
-`define CFS_MD_AGENT_CONFIG_SLAVE_SV 
+`define CFS_MD_AGENT_CONFIG_SLAVE_SV
 
-class cfs_md_agent_config_slave #(
-    int unsigned DATA_WIDTH = 32
-) extends cfs_md_agent_config #(DATA_WIDTH);
+class cfs_md_agent_config_slave#(int unsigned DATA_WIDTH = 32) extends cfs_md_agent_config#(DATA_WIDTH);
 
   //Value of "ready" signal at reset
   local bit ready_at_reset;
@@ -34,4 +26,4 @@ class cfs_md_agent_config_slave #(
 
 endclass
 
-`endif
+`endif // CFS_MD_AGENT_CONFIG_SLAVE_SV

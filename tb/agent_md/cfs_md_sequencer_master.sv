@@ -1,9 +1,3 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_sequencer_master.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-12-17
-// Description: MD master sequencer
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_SEQUENCER_MASTER_SV
 `define CFS_MD_SEQUENCER_MASTER_SV 
 
@@ -23,5 +17,4 @@ class cfs_md_sequencer_master #(
 
 endclass
 
-`endif
-
+`endif  // CFS_MD_SEQUENCER_MASTER_SV

@@ -1,9 +1,3 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_sequence_base_slave.sv
-// Author:      Cristian Florin Slav
-// Date:        2024-01-08
-// Description: MD slave base sequence class.
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_SEQUENCE_BASE_SLAVE_SV
 `define CFS_MD_SEQUENCE_BASE_SLAVE_SV 
 
@@ -21,5 +15,4 @@ class cfs_md_sequence_base_slave extends cfs_md_sequence_base #(
 
 endclass
 
-`endif
-
+`endif  // CFS_MD_SEQUENCE_BASE_SLAVE_SV

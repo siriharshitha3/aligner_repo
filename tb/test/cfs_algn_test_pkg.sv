@@ -8,7 +8,7 @@
   `define CFS_ALGN_TEST_PKG_SV
 
   `include "uvm_macros.svh"
-  `include "../env/cfs_algn_pkg.sv"
+   `include "../env/cfs_algn_pkg.sv"
 
   package cfs_algn_test_pkg;
     import uvm_pkg::*;
