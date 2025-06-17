@@ -51,4 +51,3 @@ class cfs_algn_test_random extends cfs_algn_test_base;
 endclass
 
 `endif
-
