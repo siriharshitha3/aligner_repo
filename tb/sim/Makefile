@@ -7,8 +7,9 @@ TB_TOP_DIR = ../top
 # File list
 TOP_SRCS = $(RTL_DIR)/design.sv $(TB_TOP_DIR)/testbench.sv
 
-# Test name
-TESTNAME = cfs_algn_test_random
+# Test and UVM options
+TESTNAME = cfs_algn_test_reg_access
+UVM_ARGS = +UVM_TESTNAME=$(TESTNAME) +UVM_MAX_QUIT_COUNT=1 +uvm_set_verbosity=*,REG_PREDICT,UVM_HIGH,run +access +rw
 
 # Simulation libraries
 WORKLIB = work
@@ -29,13 +30,18 @@ comp:
 	@vmap $(WORKLIB) $(WORKLIB) | tee -a $(COMP_LOG)
 	@vlog -sv -cover bcest -work $(WORKLIB) $(TOP_SRCS) +acc +define+QUESTA +incdir+$(RTL_DIR) +incdir+$(TB_TOP_DIR) | tee -a $(COMP_LOG) | tee -a $(TRANSCRIPT)
 
-# Run simulation
+# Run simulation (command-line mode)
 run:
 	@echo "[Running Simulation...]" | tee $(SIM_LOG)
-	@vsim -coverage -c -do "run -all; quit" work.testbench +UVM_TESTNAME=$(TESTNAME) +UVM_VERBOSITY=UVM_MEDIUM | tee -a $(SIM_LOG) | tee -a $(TRANSCRIPT)
+	@vsim -coverage -c -do "run -all; quit" work.testbench $(UVM_ARGS) | tee -a $(SIM_LOG) | tee -a $(TRANSCRIPT)
+
+# Launch GUI with all DUT signals preloaded
+gui:
+	@echo "[Launching QuestaSim GUI with waveforms...]"
+	@vsim -coverage work.testbench $(UVM_ARGS) -do "do wave.do;"
 
 # Clean up artifacts
 clean:
 	rm -rf $(WORKLIB) $(COMP_LOG) $(SIM_LOG) $(TRANSCRIPT) vsim.wlf
 
-.PHONY: all comp run clean
+.PHONY: all comp run gui clean

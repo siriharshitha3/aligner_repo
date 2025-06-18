@@ -1,17 +1,19 @@
 ///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_apb_sequencer.sv
+// File:        uvm_ext_sequencer.sv
 // Author:      Cristian Florin Slav
-// Date:        2023-08-22
-// Description: APB sequencer class.
+// Date:        2024-04-03
+// Description: Generic sequencer class
 ///////////////////////////////////////////////////////////////////////////////
-`ifndef CFS_APB_SEQUENCER_SV
-`define CFS_APB_SEQUENCER_SV
+`ifndef UVM_EXT_SEQUENCER_SV
+`define UVM_EXT_SEQUENCER_SV 
 
-class cfs_apb_sequencer extends uvm_sequencer #(
-    .REQ(cfs_apb_item_drv)
-) implements cfs_apb_reset_handler;
+class uvm_ext_sequencer #(
+    type ITEM_DRV = uvm_sequence_item
+) extends uvm_sequencer #(
+    .REQ(ITEM_DRV)
+) implements uvm_ext_reset_handler;
 
-  `uvm_component_utils(cfs_apb_sequencer)
+  `uvm_component_param_utils(uvm_ext_sequencer#(ITEM_DRV))
 
   function new(string name = "", uvm_component parent);
     super.new(name, parent);
@@ -34,4 +36,3 @@ class cfs_apb_sequencer extends uvm_sequencer #(
 endclass
 
 `endif
-

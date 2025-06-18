@@ -3,3 +3,4 @@ tb/sim/*
 
 # Except explicitly allow Makefile
 !tb/sim/Makefile
+!tb/sim/wave.do

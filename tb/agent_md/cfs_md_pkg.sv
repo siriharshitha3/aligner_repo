@@ -5,18 +5,20 @@
 // Description: MD Agent package.
 ///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_PKG_SV
-`define CFS_MD_PKG_SV
+`define CFS_MD_PKG_SV 
 
 `include "uvm_macros.svh"
 
 `include "../interface/cfs_md_if.sv"
 
+`include "../agent_uvm_ext/uvm_ext_pkg.sv"
+
 package cfs_md_pkg;
 
   import uvm_pkg::*;
-
+  import uvm_ext_pkg::*;
   `include "cfs_md_types.sv"  //
-  `include "cfs_md_reset_handler.sv"  //
+
 
   `include "../transaction/cfs_md_item_base.sv"
   `include "../transaction/cfs_md_item_drv.sv"

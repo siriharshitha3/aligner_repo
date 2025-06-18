@@ -1,9 +1,3 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_sequence_simple_master.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-12-17
-// Description: MD master simple sequence class.
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_SEQUENCE_SIMPLE_MASTER_SV
 `define CFS_MD_SEQUENCE_SIMPLE_MASTER_SV 
 
@@ -45,5 +39,4 @@ class cfs_md_sequence_simple_master extends cfs_md_sequence_base_master;
 
 endclass
 
-`endif
-
+`endif  // CFS_MD_SEQUENCE_SIMPLE_MASTER_SV

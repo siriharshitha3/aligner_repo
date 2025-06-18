@@ -1,128 +1,92 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_md_monitor.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-12-30
-// Description: MD monitor class.
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_MD_MONITOR_SV
-  `define CFS_MD_MONITOR_SV
+`define CFS_MD_MONITOR_SV 
 
-  class cfs_md_monitor#(int unsigned DATA_WIDTH = 32) extends uvm_monitor implements cfs_md_reset_handler;
 
-    typedef virtual cfs_md_if#(DATA_WIDTH) cfs_md_vif;
 
-    //Pointer to agent configuration
-    cfs_md_agent_config#(DATA_WIDTH) agent_config;
+class cfs_md_monitor #(
+    int unsigned DATA_WIDTH = 32
+) extends uvm_ext_monitor #(
+    .VIRTUAL_INTF(virtual cfs_md_if #(DATA_WIDTH)),
+    .ITEM_MON(cfs_md_item_mon)
+);
 
-    //Port for sending the collected item
-    uvm_analysis_port#(cfs_md_item_mon) output_port;
+  typedef virtual cfs_md_if #(DATA_WIDTH) cfs_md_vif;
 
-    //Process for collect_transactions() task
-    protected process process_collect_transactions;
+  //Pointer to agent configuration
+  cfs_md_agent_config #(DATA_WIDTH) agent_config;
 
-    `uvm_component_param_utils(cfs_md_monitor#(DATA_WIDTH))
+  `uvm_component_param_utils(cfs_md_monitor#(DATA_WIDTH))
 
-    function new(string name = "", uvm_component parent);
-      super.new(name, parent);
+  function new(string name = "", uvm_component parent);
+    super.new(name, parent);
+  endfunction
 
-      output_port = new("output_port", this);
-    endfunction
+  virtual function void end_of_elaboration_phase(uvm_phase phase);
+    super.end_of_elaboration_phase(phase);
 
-    virtual task run_phase(uvm_phase phase);
-      forever begin
-        fork
-          begin
-            wait_reset_end();
-            collect_transactions();
+    if ($cast(agent_config, super.agent_config) == 0) begin
+      `uvm_fatal("ALGORITHM_ISSUE",
+                 $sformatf("Could not cast %0s to %0s", super.agent_config.get_type_name(),
+                           cfs_md_agent_config#(DATA_WIDTH)::type_id::type_name))
+    end
+  endfunction
 
-            disable fork;
-          end 
-        join
-      end
-    endtask
+  //Task which drives one single item on the bus
+  protected virtual task collect_transaction();
+    cfs_md_vif vif = agent_config.get_vif();
 
-    //Task which drives one single item on the bus
-    protected virtual task collect_transaction();
-      cfs_md_vif vif = agent_config.get_vif();
-      
-      int unsigned data_width_in_bytes = DATA_WIDTH / 8;
+    int unsigned data_width_in_bytes = DATA_WIDTH / 8;
 
-      cfs_md_item_mon item = cfs_md_item_mon::type_id::create("item");
+    cfs_md_item_mon item = cfs_md_item_mon::type_id::create("item");
 
-      #(agent_config.get_sample_delay_start_tr());
-      
-      while(vif.valid !== 1) begin
-        @(posedge vif.clk);
-        
-        item.prev_item_delay++;
-        
-        #(agent_config.get_sample_delay_start_tr());
-      end
-      
-      item.offset = vif.offset;
-      
-      for(int i = 0; i < vif.size; i++) begin
-        item.data.push_back((vif.data >> ((item.offset + i) * 8)) & 8'hFF);
-      end
-      
-      item.length = 1;
-      
-      void'(begin_tr(item));
-      
-      //`uvm_info("DEBUG", $sformatf("Monitor started collecting item: %0s", item.convert2string()), UVM_NONE)
-      
-      output_port.write(item);
-      
+    #(agent_config.get_sample_delay_start_tr());
+
+    while (vif.valid !== 1) begin
       @(posedge vif.clk);
 
-      while(vif.ready !== 1) begin
-        @(posedge vif.clk);
-        item.length++;
+      item.prev_item_delay++;
 
-        if(agent_config.get_has_checks()) begin
-          if(item.length >= agent_config.get_stuck_threshold()) begin
-            `uvm_error("PROTOCOL_ERROR", $sformatf("The MD transfer reached the stuck threshold value of %0d", item.length))
-          end
+      #(agent_config.get_sample_delay_start_tr());
+    end
+
+    item.offset = vif.offset;
+
+    for (int i = 0; i < vif.size; i++) begin
+      item.data.push_back((vif.data >> ((item.offset + i) * 8)) & 8'hFF);
+    end
+
+    item.length = 1;
+
+    void'(begin_tr(item));
+
+    //`uvm_info("DEBUG", $sformatf("Monitor started collecting item: %0s", item.convert2string()), UVM_NONE)
+
+    output_port.write(item);
+
+    @(posedge vif.clk);
+
+    while (vif.ready !== 1) begin
+      @(posedge vif.clk);
+      item.length++;
+
+      if (agent_config.get_has_checks()) begin
+        if (item.length >= agent_config.get_stuck_threshold()) begin
+          `uvm_error("PROTOCOL_ERROR",
+                     $sformatf("The MD transfer reached the stuck threshold value of %0d",
+                               item.length))
         end
       end
+    end
 
-      item.response = cfs_md_response'(vif.err);
-      
-      end_tr(item);
+    item.response = cfs_md_response'(vif.err);
 
-      output_port.write(item);
+    end_tr(item);
 
-      `uvm_info("DEBUG", $sformatf("Monitored item: %0s", item.convert2string()), UVM_NONE)
-    endtask
+    output_port.write(item);
 
-    //Task for collecting all transactions
-    protected virtual task collect_transactions();
-      fork
-        begin
-          process_collect_transactions = process::self();
+    `uvm_info("DEBUG", $sformatf("Monitored item: %0s", item.convert2string()), UVM_NONE)
+  endtask
 
-          forever begin
-            collect_transaction();
-          end
+endclass
 
-        end
-      join
-    endtask
-
-    //Task for waiting the reset to be finished
-    protected virtual task wait_reset_end();
-      agent_config.wait_reset_end();
-    endtask
-
-    //Function to handle the reset
-    virtual function void handle_reset(uvm_phase phase);
-      if(process_collect_transactions != null) begin
-        process_collect_transactions.kill();
-
-        process_collect_transactions = null;
-      end
-    endfunction
-
-  endclass
-
-`endif
+`endif  // CFS_MD_MONITOR_SV

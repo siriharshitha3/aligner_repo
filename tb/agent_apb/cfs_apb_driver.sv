@@ -1,21 +1,12 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_apb_driver.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-08-22
-// Description: APB driver class.
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_APB_DRIVER_SV
-`define CFS_APB_DRIVER_SV 
+`define CFS_APB_DRIVER_SV
 
-class cfs_apb_driver extends uvm_driver #(
-    .REQ(cfs_apb_item_drv)
-) implements cfs_apb_reset_handler;
+class cfs_apb_driver extends uvm_ext_driver #(
+    .VIRTUAL_INTF(cfs_apb_vif),
+    .ITEM_DRV(cfs_apb_item_drv)
+);
 
-  //Pointer to agent configuration
   cfs_apb_agent_config agent_config;
-
-  //process for drive_transactions() task
-  protected process process_drive_transactions;
 
   `uvm_component_utils(cfs_apb_driver)
 
@@ -23,20 +14,16 @@ class cfs_apb_driver extends uvm_driver #(
     super.new(name, parent);
   endfunction
 
-  virtual task run_phase(uvm_phase phase);
-    forever begin
-      fork
-        begin
-          wait_reset_end();
-          drive_transactions();
+  virtual function void end_of_elaboration_phase(uvm_phase phase);
+    super.end_of_elaboration_phase(phase);
 
-          disable fork;
-        end
-      join
+    if ($cast(agent_config, super.agent_config) == 0) begin
+      `uvm_fatal("ALGORITHM_ISSUE", $sformatf("Could not cast %0s to %0s",
+                                              super.agent_config.get_type_name(),
+                                              "cfs_apb_agent_config"))
     end
-  endtask
+  endfunction
 
-  //Task which drives one single item on the bus
   protected virtual task drive_transaction(cfs_apb_item_drv item);
     cfs_apb_vif vif = agent_config.get_vif();
 
@@ -76,42 +63,11 @@ class cfs_apb_driver extends uvm_driver #(
     end
   endtask
 
-  //Task for driving all transactions
-  protected virtual task drive_transactions();
-
-    fork
-      begin
-        process_drive_transactions = process::self();
-
-        forever begin
-          cfs_apb_item_drv item;
-
-          seq_item_port.get_next_item(item);
-
-          drive_transaction(item);
-
-          seq_item_port.item_done();
-        end
-      end
-    join
-  endtask
-
-  //Task for waiting the reset to be finished
-  protected virtual task wait_reset_end();
-    agent_config.wait_reset_end();
-  endtask
-
-  //Function to handle the reset
   virtual function void handle_reset(uvm_phase phase);
     cfs_apb_vif vif = agent_config.get_vif();
 
-    if (process_drive_transactions != null) begin
-      process_drive_transactions.kill();
+    super.handle_reset(phase);
 
-      process_drive_transactions = null;
-    end
-
-    //Initialize the signals
     vif.psel    <= 0;
     vif.penable <= 0;
     vif.pwrite  <= 0;
@@ -119,8 +75,6 @@ class cfs_apb_driver extends uvm_driver #(
     vif.pwdata  <= 0;
   endfunction
 
-
 endclass
 
-`endif
-
+`endif  // CFS_APB_DRIVER_SV

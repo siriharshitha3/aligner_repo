@@ -1,103 +1,26 @@
-///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_apb_coverage.sv
-// Author:      Cristian Florin Slav
-// Date:        2023-10-13
-// Description: APB coverage class.
-///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_APB_COVERAGE_SV
 `define CFS_APB_COVERAGE_SV
 
-`uvm_analysis_imp_decl(_item)
 
-virtual class cfs_apb_cover_index_wrapper_base extends uvm_component;
 
-  function new(string name = "", uvm_component parent);
-    super.new(name, parent);
-  endfunction
+class cfs_apb_coverage extends uvm_ext_coverage #(
+    .VIRTUAL_INTF(cfs_apb_vif),
+    .ITEM_MON(cfs_apb_item_mon)
+);
 
-  //Function used to sample the information
-  pure virtual function void sample (int unsigned value);
-
-  //Function to print the coverage information.
-  //This is only to be able to visualize some basic coverage information
-  //in EDA Playground.
-  //DON'T DO THIS IN A REAL PROJECT!!!
-  pure virtual function string coverage2string();
-endclass
-
-//Wrapper over the covergroup which covers indices.
-//The MAX_VALUE parameter is used to determine the maximum value to sample
-class cfs_apb_cover_index_wrapper #(
-    int unsigned MAX_VALUE_PLUS_1 = 16
-) extends cfs_apb_cover_index_wrapper_base;
-
-  `uvm_component_param_utils(cfs_apb_cover_index_wrapper#(MAX_VALUE_PLUS_1))
-
-  covergroup cover_index with function sample (int unsigned value);
-    option.per_instance = 1;
-
-    index: coverpoint value {
-      option.comment = "Index"; bins values[MAX_VALUE_PLUS_1] = {[0 : MAX_VALUE_PLUS_1 - 1]};
-    }
-
-  endgroup
-
-  function new(string name = "", uvm_component parent);
-    super.new(name, parent);
-
-    cover_index = new();
-    cover_index.set_inst_name($sformatf("%s_%s", get_full_name(), "cover_index"));
-  endfunction
-
-  //Function to print the coverage information.
-  //This is only to be able to visualize some basic coverage information
-  //in EDA Playground.
-  //DON'T DO THIS IN A REAL PROJECT!!!
-  virtual function string coverage2string();
-    return {
-      $sformatf("\n   cover_index:              %03.2f%%", cover_index.get_inst_coverage()),
-      $sformatf("\n      index:                 %03.2f%%", cover_index.index.get_inst_coverage())
-    };
-  endfunction
-
-  //Function used to sample the information
-  virtual function void sample (int unsigned value);
-    cover_index.sample(value);
-  endfunction
-
-endclass
-
-class cfs_apb_coverage extends uvm_component implements cfs_apb_reset_handler;
-
-  //Pointer to agent configuration
   cfs_apb_agent_config agent_config;
 
-  //Port for sending the collected item
-  uvm_analysis_imp_item #(cfs_apb_item_mon, cfs_apb_coverage) port_item;
+  uvm_ext_cover_index_wrapper #(`CFS_APB_MAX_ADDR_WIDTH) wrap_cover_addr_0;
 
-  //Wrapper over the coverage group covering the indices in the PADDR signal
-  //at which the bit of the PADDR was 0
-  cfs_apb_cover_index_wrapper #(`CFS_APB_MAX_ADDR_WIDTH) wrap_cover_addr_0;
+  uvm_ext_cover_index_wrapper #(`CFS_APB_MAX_ADDR_WIDTH) wrap_cover_addr_1;
 
-  //Wrapper over the coverage group covering the indices in the PADDR signal
-  //at which the bit of the PADDR was 1
-  cfs_apb_cover_index_wrapper #(`CFS_APB_MAX_ADDR_WIDTH) wrap_cover_addr_1;
+  uvm_ext_cover_index_wrapper #(`CFS_APB_MAX_DATA_WIDTH) wrap_cover_wr_data_0;
 
-  //Wrapper over the coverage group covering the indices in the PWDATA signal
-  //at which the bit of the PWDATA was 0
-  cfs_apb_cover_index_wrapper #(`CFS_APB_MAX_DATA_WIDTH) wrap_cover_wr_data_0;
+  uvm_ext_cover_index_wrapper #(`CFS_APB_MAX_DATA_WIDTH) wrap_cover_wr_data_1;
 
-  //Wrapper over the coverage group covering the indices in the PWDATA signal
-  //at which the bit of the PWDATA was 1
-  cfs_apb_cover_index_wrapper #(`CFS_APB_MAX_DATA_WIDTH) wrap_cover_wr_data_1;
+  uvm_ext_cover_index_wrapper #(`CFS_APB_MAX_DATA_WIDTH) wrap_cover_rd_data_0;
 
-  //Wrapper over the coverage group covering the indices in the PRDATA signal
-  //at which the bit of the PRDATA was 0
-  cfs_apb_cover_index_wrapper #(`CFS_APB_MAX_DATA_WIDTH) wrap_cover_rd_data_0;
-
-  //Wrapper over the coverage group covering the indices in the PRDATA signal
-  //at which the bit of the PRDATA was 1
-  cfs_apb_cover_index_wrapper #(`CFS_APB_MAX_DATA_WIDTH) wrap_cover_rd_data_1;
+  uvm_ext_cover_index_wrapper #(`CFS_APB_MAX_DATA_WIDTH) wrap_cover_rd_data_1;
 
   `uvm_component_utils(cfs_apb_coverage)
 
@@ -142,8 +65,6 @@ class cfs_apb_coverage extends uvm_component implements cfs_apb_reset_handler;
   function new(string name = "", uvm_component parent);
     super.new(name, parent);
 
-    port_item  = new("port_item", this);
-
     cover_item = new();
     cover_item.set_inst_name($sformatf("%s_%s", get_full_name(), "cover_item"));
 
@@ -154,21 +75,30 @@ class cfs_apb_coverage extends uvm_component implements cfs_apb_reset_handler;
   virtual function void build_phase(uvm_phase phase);
     super.build_phase(phase);
 
-    wrap_cover_addr_0 = cfs_apb_cover_index_wrapper#(`CFS_APB_MAX_ADDR_WIDTH)::type_id::create(
+    wrap_cover_addr_0 = uvm_ext_cover_index_wrapper#(`CFS_APB_MAX_ADDR_WIDTH)::type_id::create(
         "wrap_cover_addr_0", this);
-    wrap_cover_addr_1 = cfs_apb_cover_index_wrapper#(`CFS_APB_MAX_ADDR_WIDTH)::type_id::create(
+    wrap_cover_addr_1 = uvm_ext_cover_index_wrapper#(`CFS_APB_MAX_ADDR_WIDTH)::type_id::create(
         "wrap_cover_addr_1", this);
-    wrap_cover_wr_data_0 = cfs_apb_cover_index_wrapper#(`CFS_APB_MAX_DATA_WIDTH)::type_id::create(
+    wrap_cover_wr_data_0 = uvm_ext_cover_index_wrapper#(`CFS_APB_MAX_DATA_WIDTH)::type_id::create(
         "wrap_cover_wr_data_0", this);
-    wrap_cover_wr_data_1 = cfs_apb_cover_index_wrapper#(`CFS_APB_MAX_DATA_WIDTH)::type_id::create(
+    wrap_cover_wr_data_1 = uvm_ext_cover_index_wrapper#(`CFS_APB_MAX_DATA_WIDTH)::type_id::create(
         "wrap_cover_wr_data_1", this);
-    wrap_cover_rd_data_0 = cfs_apb_cover_index_wrapper#(`CFS_APB_MAX_DATA_WIDTH)::type_id::create(
+    wrap_cover_rd_data_0 = uvm_ext_cover_index_wrapper#(`CFS_APB_MAX_DATA_WIDTH)::type_id::create(
         "wrap_cover_rd_data_0", this);
-    wrap_cover_rd_data_1 = cfs_apb_cover_index_wrapper#(`CFS_APB_MAX_DATA_WIDTH)::type_id::create(
+    wrap_cover_rd_data_1 = uvm_ext_cover_index_wrapper#(`CFS_APB_MAX_DATA_WIDTH)::type_id::create(
         "wrap_cover_rd_data_1", this);
   endfunction
 
-  //Port associated with port_item port
+  virtual function void end_of_elaboration_phase(uvm_phase phase);
+    super.end_of_elaboration_phase(phase);
+
+    if ($cast(agent_config, super.agent_config) == 0) begin
+      `uvm_fatal("ALGORITHM_ISSUE", $sformatf("Could not cast %0s to %0s",
+                                              super.agent_config.get_type_name(),
+                                              "cfs_apb_agent_config"))
+    end
+  endfunction
+
   virtual function void write_item(cfs_apb_item_mon item);
     cover_item.sample(item);
 
@@ -202,62 +132,40 @@ class cfs_apb_coverage extends uvm_component implements cfs_apb_reset_handler;
         end
       endcase
     end
-
-    //IMPORTANT: DON'T DO THIS IN A REAL PROJECT!!!
-    //`uvm_info("DEBUG", $sformatf("Coverage: %0s", coverage2string()), UVM_NONE)
   endfunction
 
-  //Function to handle the reset
   virtual function void handle_reset(uvm_phase phase);
     cfs_apb_vif vif = agent_config.get_vif();
 
     cover_reset.sample(vif.psel);
   endfunction
 
-  //Function to print the coverage information.
-  //This is only to be able to visualize some basic coverage information
-  //in EDA Playground.
-  //DON'T DO THIS IN A REAL PROJECT!!!
   virtual function string coverage2string();
     string result = {
-      $sformatf("\n   cover_item:              %03.2f%%", cover_item.get_inst_coverage()),
-      $sformatf("\n      direction:            %03.2f%%", cover_item.direction.get_inst_coverage()),
+      $sformatf("\n    cover_item:            %03.2f%%", cover_item.get_inst_coverage()),
+      $sformatf("\n      direction:           %03.2f%%", cover_item.direction.get_inst_coverage()),
       $sformatf(
-          "\n      trans_direction:      %03.2f%%", cover_item.trans_direction.get_inst_coverage()
+          "\n      trans_direction:     %03.2f%%", cover_item.trans_direction.get_inst_coverage()
       ),
-      $sformatf("\n      response:             %03.2f%%", cover_item.response.get_inst_coverage()),
+      $sformatf("\n      response:            %03.2f%%", cover_item.response.get_inst_coverage()),
       $sformatf(
           "\n      response_x_direction: %03.2f%%",
           cover_item.response_x_direction.get_inst_coverage()
       ),
-      $sformatf("\n      length:               %03.2f%%", cover_item.length.get_inst_coverage()),
+      $sformatf("\n      length:              %03.2f%%", cover_item.length.get_inst_coverage()),
       $sformatf(
-          "\n      prev_item_delay:      %03.2f%%", cover_item.prev_item_delay.get_inst_coverage()
+          "\n      prev_item_delay:     %03.2f%%", cover_item.prev_item_delay.get_inst_coverage()
       ),
-      $sformatf("\n                                    "),
-      $sformatf("\n   cover_reset:             %03.2f%%", cover_reset.get_inst_coverage()),
+      $sformatf("\n                                  "),
+      $sformatf("\n    cover_reset:          %03.2f%%", cover_reset.get_inst_coverage()),
       $sformatf(
-          "\n      access_ongoing:       %03.2f%%", cover_reset.access_ongoing.get_inst_coverage()
-      )
+          "\n      access_ongoing:      %03.2f%%", cover_reset.access_ongoing.get_inst_coverage()
+      ),
+      super.coverage2string()
     };
-
-    uvm_component children[$];
-
-    get_children(children);
-
-    foreach (children[idx]) begin
-      cfs_apb_cover_index_wrapper_base wrapper;
-
-      if ($cast(wrapper, children[idx])) begin
-        result = $sformatf("%s\n\nChild component: %0s%0s", result, wrapper.get_name(),
-                           wrapper.coverage2string());
-      end
-    end
-
     return result;
   endfunction
 
 endclass
 
-`endif
-
+`endif  // CFS_APB_COVERAGE_SV
