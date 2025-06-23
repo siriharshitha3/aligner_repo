@@ -28,10 +28,10 @@
     output wire                 push_ready,
 
     //Full flag - in PUSH clock domain
-    output reg                  push_full,
+    output wire                 push_full,
 
     //Empty flag - in PUSH clock domain
-    output reg                  push_empty,
+    output wire                 push_empty,
     
     //FIFO level - in PUSH clock domain
     output reg[CNT_WIDTH:0]     push_fifo_lvl,
@@ -42,10 +42,10 @@
     input                       pop_ready,
 
     //Full flag - in POP clock domain
-    output reg                  pop_full,
+    output wire                 pop_full,
 
     //Empty flag - in POP clock domain
-    output reg                  pop_empty,
+    output wire                 pop_empty,
     
     //FIFO level - in POP clock domain
     output reg[CNT_WIDTH:0]     pop_fifo_lvl
@@ -84,6 +84,12 @@
     //Write pointer - in POP clock domain
     wire[CNT_WIDTH-1:0] wr_ptr_pop;
 
+    //FIFO level - in PUSH clock domain, delayed
+    reg[CNT_WIDTH:0] push_fifo_lvl_dly;
+
+    //FIFO level - in POP clock domain, delayed
+    reg[CNT_WIDTH:0] pop_fifo_lvl_dly;
+
     always_comb begin
       if(wr_ptr_push == FIFO_DEPTH - 1) begin
         next_wr_ptr_push = 0;
@@ -92,36 +98,36 @@
         next_wr_ptr_push = wr_ptr_push + 1;
       end
     end
-
+    
+    always@(posedge push_clk or negedge reset_n) begin
+      if(reset_n == 0) begin
+        push_fifo_lvl_dly  <= 0;
+      end
+      else begin
+        push_fifo_lvl_dly <= push_fifo_lvl;
+      end
+    end
+    
+    always@(posedge pop_clk or negedge reset_n) begin
+      if(reset_n == 0) begin
+        pop_fifo_lvl_dly  <= 0;
+      end
+      else begin
+        pop_fifo_lvl_dly <= pop_fifo_lvl;
+      end
+    end
+    
+    assign push_empty = (push_fifo_lvl == 0);
+    assign push_full  = (push_fifo_lvl == FIFO_DEPTH);
+    
     always@(posedge push_clk or negedge reset_n) begin
       if(reset_n == 0) begin
         wr_ptr_push <= 0;
-        push_empty  <= 1;
-        push_full   <= 0;
       end
       else begin
         if(push_valid & push_ready) begin
           fifo[wr_ptr_push] <= push_data;
           wr_ptr_push       <= next_wr_ptr_push;
-          push_empty        <= 0;
-
-          if(next_wr_ptr_push == rd_ptr_push) begin
-            push_full <= 1;
-          end
-        end
-        else begin
-          if(push_full) begin
-            if(wr_ptr_push != rd_ptr_push) begin
-              push_full <= 0;
-            end
-          end
-          else begin
-            if(push_empty == 0) begin
-              if(wr_ptr_push == rd_ptr_push) begin
-                push_empty <= 1;
-              end
-            end
-          end
         end
       end
     end
@@ -137,44 +143,28 @@
       end
     end
 
+    assign pop_empty = (pop_fifo_lvl == 0);
+    assign pop_full  = (pop_fifo_lvl == FIFO_DEPTH);
+    
     always@(posedge pop_clk or negedge reset_n) begin
       if(reset_n == 0) begin
         rd_ptr_pop <= 0;
-        pop_empty  <= 1;
-        pop_full   <= 0;
       end
       else begin
         if(pop_valid & pop_ready) begin
           rd_ptr_pop <= next_rd_ptr_pop;
-          pop_full  <= 0;
-
-          if(next_rd_ptr_pop == wr_ptr_pop) begin
-            pop_empty <= 1;
-          end
-        end
-        else begin
-          if(pop_empty) begin
-            if(wr_ptr_pop != rd_ptr_pop) begin
-              pop_empty <= 0;
-            end
-          end
-          else begin
-            if(pop_full == 0) begin
-              if(wr_ptr_pop == rd_ptr_pop) begin
-                pop_full <= 1;
-              end
-            end
-          end
         end
       end
     end
     
     always_comb begin
-      if(push_empty) begin
-        push_fifo_lvl = 0;
-      end
-      else if(push_full) begin
-        push_fifo_lvl = FIFO_DEPTH;
+      if(wr_ptr_push == rd_ptr_push) begin
+        if(push_fifo_lvl_dly >= FIFO_DEPTH - 1) begin
+          push_fifo_lvl = FIFO_DEPTH;
+        end
+        else begin
+          push_fifo_lvl = 0;
+        end
       end
       else if(wr_ptr_push > rd_ptr_push) begin
         push_fifo_lvl = wr_ptr_push - rd_ptr_push;
@@ -185,11 +175,13 @@
     end
 
     always_comb begin
-      if(pop_empty) begin
-        pop_fifo_lvl = 0;
-      end
-      else if(pop_full) begin
-        pop_fifo_lvl = FIFO_DEPTH;
+      if(wr_ptr_pop == rd_ptr_pop) begin
+        if(pop_fifo_lvl_dly >= FIFO_DEPTH - 1) begin
+          pop_fifo_lvl = FIFO_DEPTH;
+        end
+        else begin
+          pop_fifo_lvl = 0;
+        end
       end
       else if(wr_ptr_pop > rd_ptr_pop) begin
         pop_fifo_lvl = wr_ptr_pop - rd_ptr_pop;

@@ -26,7 +26,7 @@
   
     //Register predictor handler
     cfs_algn_reg_predictor#(cfs_apb_item_mon) predictor;
-
+    
     `uvm_component_param_utils(cfs_algn_env#(ALGN_DATA_WIDTH))
     
     function new(string name = "", uvm_component parent);
@@ -61,10 +61,20 @@
     endfunction
   
     virtual function void connect_phase(uvm_phase phase);
+      cfs_algn_vif vif;
+      string vif_name = "vif";
+      
       //APB transaction adapter
       cfs_apb_reg_adapter adapter = cfs_apb_reg_adapter::type_id::create("adapter", this);
 
       super.connect_phase(phase);
+      
+      if(!uvm_config_db#(cfs_algn_vif)::get(this, "", vif_name, vif)) begin
+        `uvm_fatal("NO_VIF", $sformatf("Could not get from the database the virtual interface using name \"%0s\"", vif_name))
+      end
+      else begin
+        env_config.set_vif(vif);
+      end
       
       //Configure the predictor with an address map and an adapter
       predictor.map     = model.reg_block.default_map;
@@ -80,6 +90,12 @@
       predictor.env_config = env_config;
       
       model.env_config = env_config;
+      
+      
+      //Pass the information from the MD agents to the model
+      md_rx_agent.monitor.output_port.connect(model.port_in_rx);
+      md_tx_agent.monitor.output_port.connect(model.port_in_tx);
+      
     endfunction 
     
     //Function to handle the reset
