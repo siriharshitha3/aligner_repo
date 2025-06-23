@@ -36,6 +36,9 @@ module testbench ();
   //Instance of the MD TX interface
   cfs_md_if #(ALGN_DATA_WIDTH) md_tx_if (.clk(clk));
 
+  //Instance of the Aligner interface
+  cfs_algn_if algn_if (.clk(clk));
+
   //Initial reset generator
   initial begin
     apb_if.preset_n = 1;
@@ -61,6 +64,8 @@ module testbench ();
                                                               "vif", md_rx_if);
     uvm_config_db#(virtual cfs_md_if #(ALGN_DATA_WIDTH))::set(null, "uvm_test_top.env.md_tx_agent",
                                                               "vif", md_tx_if);
+
+    uvm_config_db#(virtual cfs_algn_if)::set(null, "uvm_test_top.env", "vif", algn_if);
 
     //Start UVM test and phases
     run_test("");

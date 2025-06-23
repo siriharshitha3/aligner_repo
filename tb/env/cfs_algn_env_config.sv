@@ -9,6 +9,9 @@
 
 class cfs_algn_env_config extends uvm_component;
 
+  //Virtual interface
+  protected cfs_algn_vif vif;
+
   //Switch to enable checks
   local bit has_checks;
 
@@ -62,8 +65,33 @@ class cfs_algn_env_config extends uvm_component;
     algn_data_width = value;
   endfunction
 
+  //Getter for the virtual interface
+  virtual function cfs_algn_vif get_vif();
+    return vif;
+  endfunction
+
+  //Setter for the virtual interface
+  virtual function void set_vif(cfs_algn_vif value);
+    if (vif == null) begin
+      vif = value;
+    end else begin
+      `uvm_fatal("ALGORITHM_ISSUE", "Trying to set the virtual interface more than once")
+    end
+  endfunction
+
+  virtual function void start_of_simulation_phase(uvm_phase phase);
+    super.start_of_simulation_phase(phase);
+
+    if (get_vif() == null) begin
+      `uvm_fatal("ALGORITHM_ISSUE",
+                 "The Aligner virtual interface is not configured at \"Start of simulation\" phase")
+    end else begin
+      `uvm_info("ALGN_CONFIG",
+                "The Aligner virtual interface is consifured at \"Start of simulation\" phase",
+                UVM_DEBUG)
+    end
+  endfunction
 
 endclass
 
 `endif
-

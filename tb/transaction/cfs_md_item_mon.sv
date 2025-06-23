@@ -1,8 +1,6 @@
 `ifndef CFS_MD_ITEM_MON_SV
 `define CFS_MD_ITEM_MON_SV 
 
-
-
 class cfs_md_item_mon extends cfs_md_item_base;
 
   //Number of clock cycles from the previous item
@@ -17,6 +15,7 @@ class cfs_md_item_mon extends cfs_md_item_base;
   //Offset of the data
   int unsigned offset;
 
+  bit active_flag = 1;
   //Response
   cfs_md_response response;
 
@@ -24,6 +23,10 @@ class cfs_md_item_mon extends cfs_md_item_base;
 
   function new(string name = "");
     super.new(name);
+  endfunction
+
+  virtual function bit is_active();
+    return (this.get_begin_time() != -1) && (this.get_end_time() == -1);
   endfunction
 
   virtual function string convert2string();

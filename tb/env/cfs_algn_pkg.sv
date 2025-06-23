@@ -13,7 +13,7 @@
   `include "../agent_apb/cfs_apb_pkg.sv"
   `include "../agent_md/cfs_md_pkg.sv"
   `include "../model/cfs_algn_reg_pkg.sv"
-
+  `include "../model/cfs_algn_if.sv"
   package cfs_algn_pkg;
     import uvm_pkg::*;
     import uvm_ext_pkg::*;
@@ -21,6 +21,7 @@
     import cfs_md_pkg::*;
     import cfs_algn_reg_pkg::*;
 
+    `include "../model/cfs_algn_types.sv"
     `include "cfs_algn_env_config.sv"
     `include "../model/cfs_algn_clr_cnt_drop.sv"
     `include "../model/cfs_algn_model.sv"
