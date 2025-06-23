@@ -285,21 +285,16 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
   //Task for building the buffer
   protected virtual task build_buffer();
     cfs_algn_vif vif = env_config.get_vif();
-    cfs_md_item_mon rx_item;
 
     forever begin
       int unsigned ctrl_size = reg_block.CTRL.SIZE.get_mirrored_value();
 
-      if ((buffer.sum() with (item.data.size())) <= ctrl_size) begin
+      if (get_buffer_data_size() <= ctrl_size) begin
+        cfs_md_item_mon rx_item;
+
         pop_from_rx_fifo(rx_item);
 
-        if (rx_item != null) begin
-          buffer.push_back(rx_item);
-          `uvm_info("BUILD_BUFFER", $sformatf("Item added, buffer size: %0d", buffer.size()),
-                    UVM_LOW)
-        end else begin
-          `uvm_warning("BUFFER_NULL", "Null item popped from RX FIFO; skipping")
-        end
+        buffer.push_back(rx_item);
       end else begin
         @(posedge vif.clk);
       end
@@ -309,26 +304,19 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
   //Task for performing the align logic
   protected virtual task align();
     cfs_algn_vif vif = env_config.get_vif();
-
     forever begin
       int unsigned ctrl_size = reg_block.CTRL.SIZE.get_mirrored_value();
       int unsigned ctrl_offset = reg_block.CTRL.OFFSET.get_mirrored_value();
 
       uvm_wait_for_nba_region();
 
-      if (ctrl_size <= (buffer.sum() with (item.data.size()))) begin
-        while (ctrl_size <= (buffer.sum() with (item.data.size()))) begin
+      if (ctrl_size <= get_buffer_data_size()) begin
+        while (ctrl_size <= get_buffer_data_size()) begin
           cfs_md_item_mon tx_item = cfs_md_item_mon::type_id::create("tx_item", this);
 
           tx_item.offset = ctrl_offset;
 
-
-          if (buffer.size() > 0 && buffer[0] != null) begin
-            void'(tx_item.begin_tr(buffer[0].get_begin_time()));
-          end else begin
-            wait (buffer.size() > 0 && buffer[0] != null);
-            void'(tx_item.begin_tr(buffer[0].get_begin_time()));
-          end
+          void'(tx_item.begin_tr(buffer[0].get_begin_time()));
 
           while (tx_item.data.size() != ctrl_size) begin
             cfs_md_item_mon buffer_item = buffer.pop_front();
@@ -355,7 +343,6 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
               buffer.push_front(splitted_items[0]);
             end
           end
-
         end
       end else begin
         @(posedge vif.clk);
@@ -488,6 +475,11 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
               UVM_NONE)
   endfunction
 
+  function int get_buffer_data_size();
+    int total = 0;
+    foreach (buffer[i]) total += buffer[i].data.size();
+    return total;
+  endfunction
 endclass
 
 `endif
