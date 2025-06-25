@@ -18,13 +18,25 @@ class cfs_algn_env_config extends uvm_component;
   //Aligner data width
   local int unsigned algn_data_width;
 
+  //Threshold, in clock cycles, in which to wait for the RX response
+  local int unsigned exp_rx_response_threshold;
+
+  //Threshold, in clock cycles, in which to wait for the TX item
+  local int unsigned exp_tx_item_threshold;
+
+  //Threshold, in clock cycles, in which to wait for the interrupt request
+  local int unsigned exp_irq_threshold;
+
   `uvm_component_utils(cfs_algn_env_config)
 
   function new(string name = "", uvm_component parent);
     super.new(name, parent);
 
-    has_checks      = 1;
-    algn_data_width = 8;
+    has_checks                = 1;
+    algn_data_width           = 8;
+    exp_rx_response_threshold = 10;
+    exp_tx_item_threshold     = 10;
+    exp_irq_threshold         = 10;
   endfunction
 
   //Getter for the has_checks control field
@@ -77,6 +89,36 @@ class cfs_algn_env_config extends uvm_component;
     end else begin
       `uvm_fatal("ALGORITHM_ISSUE", "Trying to set the virtual interface more than once")
     end
+  endfunction
+
+  //Getter for exp_rx_response_threshold
+  virtual function int unsigned get_exp_rx_response_threshold();
+    return exp_rx_response_threshold;
+  endfunction
+
+  //Setter for exp_rx_response_threshold
+  virtual function void set_exp_rx_response_threshold(int unsigned value);
+    exp_rx_response_threshold = value;
+  endfunction
+
+  //Getter for exp_tx_item_threshold
+  virtual function int unsigned get_exp_tx_item_threshold();
+    return exp_tx_item_threshold;
+  endfunction
+
+  //Setter for exp_tx_item_threshold
+  virtual function void set_exp_tx_item_threshold(int unsigned value);
+    exp_tx_item_threshold = value;
+  endfunction
+
+  //Getter for exp_irq_threshold
+  virtual function int unsigned get_exp_irq_threshold();
+    return exp_irq_threshold;
+  endfunction
+
+  //Setter for exp_irq_threshold
+  virtual function void set_exp_irq_threshold(int unsigned value);
+    exp_irq_threshold = value;
   endfunction
 
   virtual function void start_of_simulation_phase(uvm_phase phase);

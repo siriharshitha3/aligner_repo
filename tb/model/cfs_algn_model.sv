@@ -43,6 +43,12 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
   //Intermediate buffer containing information ready to be aligned
   protected cfs_md_item_mon buffer[$];
 
+  //Event to synchronize the completing of the TX transaction
+  protected uvm_event tx_complete;
+
+  //buffered value of the expected interrupt request
+  protected bit exp_irq;
+
 
   //Pointer to the process of the task push_to_rx_fifo()
   local process process_push_to_rx_fifo;
@@ -52,6 +58,25 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
   //Pointer to the process of the task align()
   local process process_align;
+
+  //Pointer to the process of the task tx_ctrl()
+  local process process_tx_ctrl;
+
+  //Pointer to the process of the task send_exp_irq
+  local process process_send_exp_irq;
+
+  //Pointer to the process from inside function set_rx_fifo_empty()
+  local process process_set_rx_fifo_empty;
+
+  //Pointer to the process from inside function set_rx_fifo_full()
+  local process process_set_rx_fifo_full;
+
+  //Pointer to the process from inside function set_tx_fifo_empty()
+  local process process_set_tx_fifo_empty;
+
+  //Pointer to the process from inside function set_tx_fifo_full()
+  local process process_set_tx_fifo_full;
+
 
   `uvm_component_utils(cfs_algn_model)
 
@@ -66,6 +91,8 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
     rx_fifo      = new("rx_fifo", this, 8);
     tx_fifo      = new("tx_fifo", this, 8);
+
+    tx_complete  = new("tx_complete");
   endfunction
 
   virtual function void build_phase(uvm_phase phase);
@@ -112,13 +139,26 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
     kill_process(process_push_to_rx_fifo);
     kill_process(process_build_buffer);
     kill_process(process_align);
+    kill_process(process_tx_ctrl);
+    kill_process(process_send_exp_irq);
+
+
+    kill_process(process_set_rx_fifo_empty);
+    kill_process(process_set_rx_fifo_full);
+    kill_process(process_set_tx_fifo_empty);
+    kill_process(process_set_tx_fifo_full);
+
+    tx_complete.reset();
 
     rx_fifo.flush();
     tx_fifo.flush();
-    buffer = {};
+    buffer  = {};
+    exp_irq = 0;
 
     build_buffer_nb();
     align_nb();
+    tx_ctrl_nb();
+    send_exp_irq_nb();
   endfunction
 
   //Get the expected response
@@ -158,47 +198,156 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
   //Function for setting IRQ.RX_FIFO_FULL flag
   protected virtual function void set_rx_fifo_full();
-    void'(reg_block.IRQ.RX_FIFO_FULL.predict(1));
+    fork
+      begin
+        process_set_rx_fifo_full = process::self();
 
-    `uvm_info("DEBUG", $sformatf(
-              "RX FIFO became full - %0s: %0d",
-              reg_block.IRQEN.RX_FIFO_FULL.get_full_name(),
-              reg_block.IRQEN.RX_FIFO_FULL.get_mirrored_value()
-              ), UVM_NONE)
+        repeat (2) begin
+          uvm_wait_for_nba_region();
+        end
 
-    if (reg_block.IRQEN.RX_FIFO_FULL.get_mirrored_value() == 1) begin
-      port_out_irq.write(1);
-    end
+        void'(reg_block.IRQ.RX_FIFO_FULL.predict(1));
+
+        `uvm_info("DEBUG", $sformatf(
+                  "RX FIFO became full - %0s: %0d",
+                  reg_block.IRQEN.RX_FIFO_FULL.get_full_name(),
+                  reg_block.IRQEN.RX_FIFO_FULL.get_mirrored_value()
+                  ), UVM_NONE)
+
+        if (reg_block.IRQEN.RX_FIFO_FULL.get_mirrored_value() == 1) begin
+          exp_irq = 1;
+        end
+
+        process_set_rx_fifo_full = null;
+      end
+    join_none
   endfunction
 
   //Function for setting IRQ.RX_FIFO_EMPTY flag
   protected virtual function void set_rx_fifo_empty();
-    void'(reg_block.IRQ.RX_FIFO_EMPTY.predict(1));
+    fork
+      begin
+        process_set_rx_fifo_empty = process::self();
 
-    `uvm_info("DEBUG", $sformatf(
-              "RX FIFO became empty - %0s: %0d",
-              reg_block.IRQEN.RX_FIFO_EMPTY.get_full_name(),
-              reg_block.IRQEN.RX_FIFO_EMPTY.get_mirrored_value()
-              ), UVM_NONE)
+        repeat (2) begin
+          uvm_wait_for_nba_region();
+        end
 
-    if (reg_block.IRQEN.RX_FIFO_EMPTY.get_mirrored_value() == 1) begin
-      port_out_irq.write(1);
-    end
+        void'(reg_block.IRQ.RX_FIFO_EMPTY.predict(1));
+
+        `uvm_info("DEBUG", $sformatf(
+                  "RX FIFO became empty - %0s: %0d",
+                  reg_block.IRQEN.RX_FIFO_EMPTY.get_full_name(),
+                  reg_block.IRQEN.RX_FIFO_EMPTY.get_mirrored_value()
+                  ), UVM_NONE)
+
+        if (reg_block.IRQEN.RX_FIFO_EMPTY.get_mirrored_value() == 1) begin
+          exp_irq = 1;
+        end
+
+        process_set_rx_fifo_empty = null;
+      end
+    join_none
   endfunction
 
   //Function for setting IRQ.TX_FIFO_FULL flag
   protected virtual function void set_tx_fifo_full();
-    void'(reg_block.IRQ.TX_FIFO_FULL.predict(1));
+    fork
+      begin
+        process_set_tx_fifo_full = process::self();
 
-    `uvm_info("DEBUG", $sformatf(
-              "TX FIFO became full - %0s: %0d",
-              reg_block.IRQEN.TX_FIFO_FULL.get_full_name(),
-              reg_block.IRQEN.TX_FIFO_FULL.get_mirrored_value()
-              ), UVM_NONE)
+        repeat (2) begin
+          uvm_wait_for_nba_region();
+        end
 
-    if (reg_block.IRQEN.TX_FIFO_FULL.get_mirrored_value() == 1) begin
-      port_out_irq.write(1);
-    end
+        void'(reg_block.IRQ.TX_FIFO_FULL.predict(1));
+
+        `uvm_info("DEBUG", $sformatf(
+                  "TX FIFO became full - %0s: %0d",
+                  reg_block.IRQEN.TX_FIFO_FULL.get_full_name(),
+                  reg_block.IRQEN.TX_FIFO_FULL.get_mirrored_value()
+                  ), UVM_NONE)
+
+        if (reg_block.IRQEN.TX_FIFO_FULL.get_mirrored_value() == 1) begin
+          // port_out_irq.write(1);
+          exp_irq = 1;
+        end
+
+        process_set_tx_fifo_full = null;
+      end
+    join_none
+  endfunction
+
+  //Function for setting IRQ.TX_FIFO_EMPTY flag
+  protected virtual function void set_tx_fifo_empty();
+    fork
+      begin
+        process_set_tx_fifo_empty = process::self();
+
+        repeat (2) begin
+          uvm_wait_for_nba_region();
+        end
+
+        void'(reg_block.IRQ.TX_FIFO_EMPTY.predict(1));
+
+        `uvm_info("DEBUG", $sformatf(
+                  "TX FIFO became empty - %0s: %0d",
+                  reg_block.IRQEN.TX_FIFO_EMPTY.get_full_name(),
+                  reg_block.IRQEN.TX_FIFO_EMPTY.get_mirrored_value()
+                  ), UVM_NONE)
+
+        if (reg_block.IRQEN.TX_FIFO_EMPTY.get_mirrored_value() == 1) begin
+          // port_out_irq.write(1);
+          exp_irq = 1;
+        end
+
+        process_set_tx_fifo_empty = null;
+      end
+    join_none
+  endfunction
+
+  //Function for killing a process from within function set_rx_fifo_full()
+  protected virtual function void kill_set_rx_fifo_full();
+    fork
+      begin
+        uvm_wait_for_nba_region();
+
+        kill_process(process_set_rx_fifo_full);
+      end
+    join_none
+  endfunction
+
+  //Function for killing a process from within function set_rx_fifo_empty()
+  protected virtual function void kill_set_rx_fifo_empty();
+    fork
+      begin
+        uvm_wait_for_nba_region();
+
+        kill_process(process_set_rx_fifo_empty);
+      end
+    join_none
+  endfunction
+
+  //Function for killing a process from within function set_tx_fifo_full()
+  protected virtual function void kill_set_tx_fifo_full();
+    fork
+      begin
+        uvm_wait_for_nba_region();
+
+        kill_process(process_set_tx_fifo_full);
+      end
+    join_none
+  endfunction
+
+  //Function for killing a process from within function set_tx_fifo_empty()
+  protected virtual function void kill_set_tx_fifo_empty();
+    fork
+      begin
+        uvm_wait_for_nba_region();
+
+        kill_process(process_set_tx_fifo_empty);
+      end
+    join_none
   endfunction
 
   //Function to increment STATUS.CNT_DROP whenever an error is detected
@@ -247,9 +396,254 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
     end
   endfunction
 
+  //Function to decrement STATUS.TX_LVL whenever data is popped from TX FIFO
+  protected virtual function void dec_tx_lvl();
+    void'(reg_block.STATUS.TX_LVL.predict(reg_block.STATUS.TX_LVL.get_mirrored_value() - 1));
+
+    if (reg_block.STATUS.TX_LVL.get_mirrored_value() == 0) begin
+      set_tx_fifo_empty();
+    end
+  endfunction
+
+  //Task for trying to synchronize a push to RX FIFO with RTL
+  // protected virtual task sync_push_to_rx_fifo();
+  //   cfs_algn_vif vif = env_config.get_vif();
+  //
+  //   fork
+  //     begin
+  //       fork
+  //         begin
+  //           @(posedge vif.clk iff (vif.rx_fifo_push));
+  //         end
+  //         begin
+  //           repeat (10) begin
+  //             @(posedge vif.clk iff(reg_block.STATUS.RX_LVL.get_mirrored_value() < rx_fifo.size()));
+  //           end
+  //
+  //           `uvm_warning("DUT_WARNING", "RX FIFO push did NOT synchronize with RTL")
+  //         end
+  //       join_any
+  //
+  //       disable fork;
+  //     end
+  //   join
+  // endtask
+
+  protected virtual task sync_push_to_rx_fifo();
+    cfs_algn_vif vif = env_config.get_vif();
+
+    int timeout = 10;
+    bit rtl_push_detected = 0;
+
+    fork
+      begin
+        // Wait for vif.rx_fifo_push
+        forever begin
+          @(posedge vif.clk);
+          if (vif.rx_fifo_push) begin
+            rtl_push_detected = 1;
+            break;
+          end
+        end
+      end
+
+      begin
+        // Wait for max 10 posedges where RX_LVL < FIFO size
+        int count = 0;
+        while (count < timeout) begin
+          @(posedge vif.clk);
+          if (reg_block.STATUS.RX_LVL.get_mirrored_value() < rx_fifo.size()) count++;
+        end
+      end
+    join_any
+
+    disable fork;
+
+    if (!rtl_push_detected) `uvm_warning("DUT_WARNING", "RX FIFO push did NOT synchronize with RTL")
+  endtask
+  //Task for trying to synchronize a pop from RX FIFO with RTL
+  // protected virtual task sync_pop_from_rx_fifo();
+  //   cfs_algn_vif vif = env_config.get_vif();
+  //
+  //   fork
+  //     begin
+  //       fork
+  //         begin
+  //           @(posedge vif.clk iff (vif.rx_fifo_pop));
+  //         end
+  //         begin
+  //           repeat (10) begin
+  //             @(posedge vif.clk iff((reg_block.STATUS.RX_LVL.get_mirrored_value() > 0) && (reg_block.STATUS.TX_LVL.get_mirrored_value() < tx_fifo.size())));
+  //           end
+  //
+  //           `uvm_warning("DUT_WARNING", "RX FIFO pop did NOT synchronize with RTL")
+  //         end
+  //       join_any
+  //
+  //       disable fork;
+  //     end
+  //   join
+  // endtask
+
+
+  protected virtual task sync_pop_from_rx_fifo();
+    cfs_algn_vif vif = env_config.get_vif();
+
+    int timeout = 10;
+    bit rtl_pop_detected = 0;
+
+    fork
+      begin
+        // Wait for rx_fifo_pop to go high
+        forever begin
+          @(posedge vif.clk);
+          if (vif.rx_fifo_pop) begin
+            rtl_pop_detected = 1;
+            break;
+          end
+        end
+      end
+
+      begin
+        // Wait for up to 10 cycles if RX_LVL > 0 and TX_LVL < fifo size
+        int count = 0;
+        while (count < timeout) begin
+          @(posedge vif.clk);
+          if ((reg_block.STATUS.RX_LVL.get_mirrored_value() > 0) &&
+            (reg_block.STATUS.TX_LVL.get_mirrored_value() < tx_fifo.size())) begin
+            count++;
+          end
+        end
+      end
+    join_any
+
+    disable fork;
+
+    if (!rtl_pop_detected) `uvm_warning("DUT_WARNING", "RX FIFO pop did NOT synchronize with RTL")
+  endtask
+  //Task for trying to synchronize a push to TX FIFO with RTL
+  // protected virtual task sync_push_to_tx_fifo();
+  //   cfs_algn_vif vif = env_config.get_vif();
+  //
+  //   fork
+  //     begin
+  //       fork
+  //         begin
+  //           @(posedge vif.clk iff (vif.tx_fifo_push));
+  //         end
+  //         begin
+  //           repeat (10) begin
+  //             @(posedge vif.clk iff(reg_block.STATUS.TX_LVL.get_mirrored_value() < tx_fifo.size()));
+  //           end
+  //
+  //           `uvm_warning("DUT_WARNING", "TX FIFO push did NOT synchronize with RTL")
+  //         end
+  //       join_any
+  //
+  //       disable fork;
+  //     end
+  //   join
+  // endtask
+
+
+  protected virtual task sync_push_to_tx_fifo();
+    cfs_algn_vif vif = env_config.get_vif();
+
+    bit rtl_push_detected = 0;
+    int timeout = 10;
+
+    fork
+      begin
+        // Wait for tx_fifo_push signal
+        forever begin
+          @(posedge vif.clk);
+          if (vif.tx_fifo_push) begin
+            rtl_push_detected = 1;
+            break;
+          end
+        end
+      end
+
+      begin
+        // Check TX_LVL condition for up to 10 cycles
+        int count = 0;
+        while (count < timeout) begin
+          @(posedge vif.clk);
+          if (reg_block.STATUS.TX_LVL.get_mirrored_value() < tx_fifo.size()) count++;
+        end
+      end
+    join_any
+
+    disable fork;
+
+    if (!rtl_push_detected) `uvm_warning("DUT_WARNING", "TX FIFO push did NOT synchronize with RTL")
+  endtask
+
+  //Task for trying to synchronize a pop from TX FIFO with RTL
+  // protected virtual task sync_pop_from_tx_fifo();
+  //   cfs_algn_vif vif = env_config.get_vif();
+  //
+  //   fork
+  //     begin
+  //       fork
+  //         begin
+  //           @(posedge vif.clk iff (vif.tx_fifo_pop));
+  //         end
+  //         begin
+  //           repeat (200) begin
+  //             @(posedge vif.clk iff (reg_block.STATUS.TX_LVL.get_mirrored_value() > 0));
+  //           end
+  //
+  //           `uvm_warning("DUT_WARNING", "TX FIFO pop did NOT synchronize with RTL")
+  //         end
+  //       join_any
+  //
+  //       disable fork;
+  //     end
+  //   join
+  // endtask
+
+
+  protected virtual task sync_pop_from_tx_fifo();
+    cfs_algn_vif vif = env_config.get_vif();
+
+    bit rtl_pop_detected = 0;
+    int timeout = 200;
+
+    fork
+      begin
+        // Wait for tx_fifo_pop signal
+        forever begin
+          @(posedge vif.clk);
+          if (vif.tx_fifo_pop) begin
+            rtl_pop_detected = 1;
+            break;
+          end
+        end
+      end
+
+      begin
+        // Poll TX_LVL value for up to 200 cycles
+        int count = 0;
+        while (count < timeout) begin
+          @(posedge vif.clk);
+          if (reg_block.STATUS.TX_LVL.get_mirrored_value() > 0) count++;
+        end
+      end
+    join_any
+
+    disable fork;
+
+    if (!rtl_pop_detected) `uvm_warning("DUT_WARNING", "TX FIFO pop did NOT synchronize with RTL")
+  endtask
+
   //Task to push to RX FIFO the incoming data
   protected virtual task push_to_rx_fifo(cfs_md_item_mon item);
+    sync_push_to_rx_fifo();
+
     rx_fifo.put(item);
+
+    kill_set_rx_fifo_empty();
 
     inc_rx_lvl();
 
@@ -262,7 +656,11 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
   //Task to pop from RX FIFO
   protected virtual task pop_from_rx_fifo(ref cfs_md_item_mon item);
+    sync_pop_from_rx_fifo();
+
     rx_fifo.get(item);
+
+    kill_set_rx_fifo_full();
 
     dec_rx_lvl();
 
@@ -273,11 +671,30 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
   //Task to push to TX FIFO the aligned data
   protected virtual task push_to_tx_fifo(cfs_md_item_mon item);
+    sync_push_to_tx_fifo();
+
     tx_fifo.put(item);
+
+    kill_set_tx_fifo_empty();
 
     inc_tx_lvl();
 
     `uvm_info("DEBUG", $sformatf("TX FIFO push - new level: %0d, pushed entry: %0s",
+                                 reg_block.STATUS.TX_LVL.get_mirrored_value(),
+                                 item.convert2string()), UVM_NONE)
+  endtask
+
+  //Task to pop from TX FIFO the aligned data
+  protected virtual task pop_from_tx_fifo(ref cfs_md_item_mon item);
+    sync_pop_from_tx_fifo();
+
+    tx_fifo.get(item);
+
+    kill_set_tx_fifo_full();
+
+    dec_tx_lvl();
+
+    `uvm_info("DEBUG", $sformatf("TX FIFO pop - new level: %0d, popped entry: %0s",
                                  reg_block.STATUS.TX_LVL.get_mirrored_value(),
                                  item.convert2string()), UVM_NONE)
   endtask
@@ -304,6 +721,7 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
   //Task for performing the align logic
   protected virtual task align();
     cfs_algn_vif vif = env_config.get_vif();
+
     forever begin
       int unsigned ctrl_size = reg_block.CTRL.SIZE.get_mirrored_value();
       int unsigned ctrl_offset = reg_block.CTRL.OFFSET.get_mirrored_value();
@@ -343,6 +761,7 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
               buffer.push_front(splitted_items[0]);
             end
           end
+
         end
       end else begin
         @(posedge vif.clk);
@@ -392,6 +811,33 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
     end
   endfunction
 
+  //Task to model the TX Controller
+  protected virtual task tx_ctrl();
+    cfs_md_item_mon item;
+
+    forever begin
+      pop_from_tx_fifo(item);
+
+      port_out_tx.write(item);
+
+      tx_complete.wait_trigger();
+    end
+  endtask
+
+  //task for sending the expected interrupt request
+  protected virtual task send_exp_irq();
+    cfs_algn_vif vif = env_config.get_vif();
+
+    forever begin
+      @(negedge vif.clk);
+
+      if (exp_irq == 1) begin
+        port_out_irq.write(exp_irq);
+
+        exp_irq = 0;
+      end
+    end
+  endtask
   //Function to push to RX FIFO the incoming data
   local virtual function void push_to_rx_fifo_nb(cfs_md_item_mon item);
     if (process_push_to_rx_fifo != null) begin
@@ -446,7 +892,41 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
   endfunction
 
+  //Function start the tx_ctrl() task
+  local virtual function void tx_ctrl_nb();
+    if (process_tx_ctrl != null) begin
+      `uvm_fatal("ALGORITHM_ISSUE", "Can not start two instances of tx_ctrl() tasks")
+    end
 
+    fork
+      begin
+        process_tx_ctrl = process::self();
+
+        tx_ctrl();
+
+        process_tx_ctrl = null;
+      end
+    join_none
+
+  endfunction
+
+  //Function start the send_exp_irq() task
+  local virtual function void send_exp_irq_nb();
+    if (process_send_exp_irq != null) begin
+      `uvm_fatal("ALGORITHM_ISSUE", "Can not start two instances of send_exp_irq() tasks")
+    end
+
+    fork
+      begin
+        process_send_exp_irq = process::self();
+
+        send_exp_irq();
+
+        process_send_exp_irq = null;
+      end
+    join_none
+
+  endfunction
 
   virtual function void write_in_rx(cfs_md_item_mon item_mon);
     if (item_mon.is_active()) begin
@@ -463,16 +943,16 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
         end
         default: begin
           `uvm_fatal("ALGORITHM_ISSUE", $sformatf(
-                     "Un-supported value for response: %0s", exp_response.name()))
+                     "Un-supported value for exp_response: %0s", exp_response.name()))
         end
       endcase
     end
   endfunction
 
   virtual function void write_in_tx(cfs_md_item_mon item_mon);
-    `uvm_info("DEBUG", $sformatf(
-              "Model received information from the TX agent: %0s", item_mon.convert2string()),
-              UVM_NONE)
+    if (!item_mon.is_active()) begin
+      tx_complete.trigger();
+    end
   endfunction
 
   function int get_buffer_data_size();
@@ -480,6 +960,7 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
     foreach (buffer[i]) total += buffer[i].data.size();
     return total;
   endfunction
+
 endclass
 
 `endif
