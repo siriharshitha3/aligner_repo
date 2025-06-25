@@ -28,6 +28,7 @@
     `include "../model/cfs_algn_reg_access_status_info.sv"
     `include "../model/cfs_algn_reg_predictor.sv"
     `include "../model/cfs_apb_reg_adapter.sv"
+    `include "../scoreboard/cfs_algn_scoreboard.sv"
     `include "cfs_algn_env.sv"
 
     `include "../model/cfs_algn_seq_reg_config.sv"

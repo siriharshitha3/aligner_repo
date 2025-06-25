@@ -27,6 +27,9 @@
     //Register predictor handler
     cfs_algn_reg_predictor#(cfs_apb_item_mon) predictor;
     
+    //Scoreboard handler
+    cfs_algn_scoreboard scoreboard;
+    
     `uvm_component_param_utils(cfs_algn_env#(ALGN_DATA_WIDTH))
     
     function new(string name = "", uvm_component parent);
@@ -58,6 +61,8 @@
       model = cfs_algn_model::type_id::create("model", this);
       
       predictor = cfs_algn_reg_predictor#(cfs_apb_item_mon)::type_id::create("predictor", this);
+      
+      scoreboard = cfs_algn_scoreboard::type_id::create("scoreboard", this);
     endfunction
   
     virtual function void connect_phase(uvm_phase phase);
@@ -96,11 +101,20 @@
       md_rx_agent.monitor.output_port.connect(model.port_in_rx);
       md_tx_agent.monitor.output_port.connect(model.port_in_tx);
       
+      scoreboard.env_config = env_config;
+      
+      model.port_out_rx.connect(scoreboard.port_in_model_rx);
+      model.port_out_tx.connect(scoreboard.port_in_model_tx);
+      model.port_out_irq.connect(scoreboard.port_in_model_irq);
+      md_rx_agent.monitor.output_port.connect(scoreboard.port_in_agent_rx);
+      md_tx_agent.monitor.output_port.connect(scoreboard.port_in_agent_tx);
+      
     endfunction 
     
     //Function to handle the reset
     virtual function void handle_reset(uvm_phase phase);
       model.handle_reset(phase);
+      scoreboard.handle_reset(phase);
     endfunction
   
     //Task for waiting reset to start
