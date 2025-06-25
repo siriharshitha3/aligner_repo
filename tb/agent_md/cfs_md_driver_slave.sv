@@ -42,8 +42,8 @@ class cfs_md_driver_slave #(
 
     cfs_md_vif vif = agent_config.get_vif();
 
-    `uvm_info("DEBUG", $sformatf("Driving \"%0s\": %0s", item.get_full_name(),
-                                 item.convert2string()), UVM_NONE)
+    `uvm_info("ITEM_START", $sformatf("Driving \"%0s\": %0s", item.get_full_name(),
+                                 item.convert2string()), UVM_LOW)
 
     if (vif.valid !== 1) begin
       `uvm_error(

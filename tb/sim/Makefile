@@ -8,8 +8,8 @@ TB_TOP_DIR = ../top
 TOP_SRCS = $(RTL_DIR)/design.sv $(TB_TOP_DIR)/testbench.sv
 
 # Test and UVM options
-TESTNAME = cfs_algn_test_random
-UVM_ARGS = +UVM_TESTNAME=$(TESTNAME) +UVM_MAX_QUIT_COUNT=1 +uvm_set_verbosity=*,REG_PREDICT,UVM_HIGH,run +access +rw
+TESTNAME = cfs_algn_test_reg_access
+UVM_ARGS = +UVM_TESTNAME=$(TESTNAME) +UVM_MAX_QUIT_COUNT=1 +access +rw -f messages.f -sv_seed 568881387
 
 # Simulation libraries
 WORKLIB = work

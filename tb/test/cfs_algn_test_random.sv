@@ -56,8 +56,6 @@ class cfs_algn_test_random extends cfs_algn_test_base;
 
     #(500ns);
 
-    `uvm_info("DEBUG", "this is the end of the test", UVM_LOW)
-
     phase.drop_objection(this, "TEST_DONE");
   endtask
 
