@@ -30,12 +30,18 @@
     //Scoreboard handler
     cfs_algn_scoreboard scoreboard;
     
+    //Coverage handler
+    cfs_algn_coverage coverage;
+    
+    //Virtual sequencer handler
+    cfs_algn_virtual_sequencer virtual_sequencer;
+    
     `uvm_component_param_utils(cfs_algn_env#(ALGN_DATA_WIDTH))
     
     function new(string name = "", uvm_component parent);
       super.new(name, parent);
     endfunction
-    
+     
     virtual function void build_phase(uvm_phase phase);
       super.build_phase(phase);
       
@@ -63,6 +69,12 @@
       predictor = cfs_algn_reg_predictor#(cfs_apb_item_mon)::type_id::create("predictor", this);
       
       scoreboard = cfs_algn_scoreboard::type_id::create("scoreboard", this);
+      
+      if(env_config.get_has_coverage()) begin
+        coverage = cfs_algn_coverage::type_id::create("coverage", this);
+      end 
+      
+      virtual_sequencer = cfs_algn_virtual_sequencer::type_id::create("virtual_sequencer", this);
     endfunction
   
     virtual function void connect_phase(uvm_phase phase);
@@ -109,12 +121,24 @@
       md_rx_agent.monitor.output_port.connect(scoreboard.port_in_agent_rx);
       md_tx_agent.monitor.output_port.connect(scoreboard.port_in_agent_tx);
       
+      if(coverage != null) begin
+        model.port_out_split_info.connect(coverage.port_in_split_info);
+      end
+      
+      virtual_sequencer.apb_sequencer   = apb_agent.sequencer;
+      virtual_sequencer.md_rx_sequencer = cfs_md_sequencer_base_master'(md_rx_agent.sequencer);
+      virtual_sequencer.md_tx_sequencer = cfs_md_sequencer_base_slave'(md_tx_agent.sequencer);
+      virtual_sequencer.model           = model;
     endfunction 
     
     //Function to handle the reset
     virtual function void handle_reset(uvm_phase phase);
       model.handle_reset(phase);
       scoreboard.handle_reset(phase);
+      
+      if(coverage != null) begin
+        coverage.handle_reset(phase);
+      end 
     endfunction
   
     //Task for waiting reset to start

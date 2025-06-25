@@ -33,6 +33,8 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
   //Port for sending the expected interrupt request
   uvm_analysis_port #(bit) port_out_irq;
 
+  //Port for sending the split transaction info
+  uvm_analysis_port #(cfs_algn_split_info) port_out_split_info;
 
   //Model of the RX FIFO
   protected uvm_tlm_fifo #(cfs_md_item_mon) rx_fifo;
@@ -83,16 +85,17 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
   function new(string name = "", uvm_component parent);
     super.new(name, parent);
 
-    port_in_rx   = new("port_in_rx", this);
-    port_in_tx   = new("port_in_tx", this);
-    port_out_rx  = new("port_out_rx", this);
-    port_out_tx  = new("port_out_tx", this);
-    port_out_irq = new("port_out_irq", this);
+    port_in_rx          = new("port_in_rx", this);
+    port_in_tx          = new("port_in_tx", this);
+    port_out_rx         = new("port_out_rx", this);
+    port_out_tx         = new("port_out_tx", this);
+    port_out_irq        = new("port_out_irq", this);
+    port_out_split_info = new("port_out_split", this);
 
-    rx_fifo      = new("rx_fifo", this, 8);
-    tx_fifo      = new("tx_fifo", this, 8);
+    rx_fifo             = new("rx_fifo", this, 8);
+    tx_fifo             = new("tx_fifo", this, 8);
 
-    tx_complete  = new("tx_complete");
+    tx_complete         = new("tx_complete");
   endfunction
 
   virtual function void build_phase(uvm_phase phase);
@@ -759,6 +762,17 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
               buffer.push_front(splitted_items[1]);
               buffer.push_front(splitted_items[0]);
+              begin
+                cfs_algn_split_info info = cfs_algn_split_info::type_id::create("info", this);
+
+                info.ctrl_offset      = ctrl_offset;
+                info.ctrl_size        = ctrl_size;
+                info.md_offset        = buffer_item.offset;
+                info.md_size          = buffer_item.data.size();
+                info.num_bytes_needed = num_bytes_needed;
+
+                port_out_split_info.write(info);
+              end
             end
           end
 

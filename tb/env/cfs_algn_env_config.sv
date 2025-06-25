@@ -15,6 +15,9 @@ class cfs_algn_env_config extends uvm_component;
   //Switch to enable checks
   local bit has_checks;
 
+  //Switch to enable coverage
+  local bit has_coverage;
+
   //Aligner data width
   local int unsigned algn_data_width;
 
@@ -33,6 +36,7 @@ class cfs_algn_env_config extends uvm_component;
     super.new(name, parent);
 
     has_checks                = 1;
+    has_coverage              = 1;
     algn_data_width           = 8;
     exp_rx_response_threshold = 10;
     exp_tx_item_threshold     = 10;
@@ -47,6 +51,16 @@ class cfs_algn_env_config extends uvm_component;
   //Setter for the has_checks control field
   virtual function void set_has_checks(bit value);
     has_checks = value;
+  endfunction
+
+  //Getter for the has_coverage control field
+  virtual function bit get_has_coverage();
+    return has_coverage;
+  endfunction
+
+  //Setter for the has_coverage control field
+  virtual function void set_has_coverage(bit value);
+    has_coverage = value;
   endfunction
 
   //Getter for the algn_data_width control field
