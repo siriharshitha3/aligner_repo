@@ -1,7 +1,17 @@
-# Ignore everything in sim/
-tb/sim/*
+# Ignore simulation output files
+compile.log
+sim.log
+transcript
+vsim.wlf
+*.vstf
+*.log
 
-# Except explicitly allow Makefile
-!tb/sim/Makefile
-!tb/sim/wave.do
-!tb/sim/messages.f
+# Ignore Questa libraries
+work/
+modelsim.ini
+
+# Ignore waveform dumps
+dump.vcd
+
+# Ignore trace/debug db
+tr_db.log
