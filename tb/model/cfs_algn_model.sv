@@ -163,7 +163,22 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
     tx_ctrl_nb();
     send_exp_irq_nb();
   endfunction
+  //Function to determine if the model is empty
+  virtual function bit is_empty();
+    if (rx_fifo.used() != 0) begin
+      return 0;
+    end
 
+    if (tx_fifo.used() != 0) begin
+      return 0;
+    end
+
+    if (buffer.size() != 0) begin
+      return 0;
+    end
+
+    return 1;
+  endfunction
   //Get the expected response
   protected virtual function cfs_md_response get_exp_response(cfs_md_item_mon item);
     //Size of the access is 0.
@@ -651,8 +666,8 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
     inc_rx_lvl();
 
     `uvm_info("RX_FIFO", $sformatf("RX FIFO push - new level: %0d, pushed entry: %0s",
-                                 reg_block.STATUS.RX_LVL.get_mirrored_value(),
-                                 item.convert2string()), UVM_LOW)
+                                   reg_block.STATUS.RX_LVL.get_mirrored_value(),
+                                   item.convert2string()), UVM_LOW)
 
     port_out_rx.write(CFS_MD_OKAY);
   endtask
@@ -668,8 +683,8 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
     dec_rx_lvl();
 
     `uvm_info("RX_FIFO", $sformatf("RX FIFO pop - new level: %0d, popped entry: %0s",
-                                 reg_block.STATUS.RX_LVL.get_mirrored_value(),
-                                 item.convert2string()), UVM_LOW)
+                                   reg_block.STATUS.RX_LVL.get_mirrored_value(),
+                                   item.convert2string()), UVM_LOW)
   endtask
 
   //Task to push to TX FIFO the aligned data
@@ -683,8 +698,8 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
     inc_tx_lvl();
 
     `uvm_info("TX_FIFO", $sformatf("TX FIFO push - new level: %0d, pushed entry: %0s",
-                                 reg_block.STATUS.TX_LVL.get_mirrored_value(),
-                                 item.convert2string()), UVM_LOW)
+                                   reg_block.STATUS.TX_LVL.get_mirrored_value(),
+                                   item.convert2string()), UVM_LOW)
   endtask
 
   //Task to pop from TX FIFO the aligned data
@@ -698,8 +713,8 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
     dec_tx_lvl();
 
     `uvm_info("TX_FIFO", $sformatf("TX FIFO pop - new level: %0d, popped entry: %0s",
-                                 reg_block.STATUS.TX_LVL.get_mirrored_value(),
-                                 item.convert2string()), UVM_LOW)
+                                   reg_block.STATUS.TX_LVL.get_mirrored_value(),
+                                   item.convert2string()), UVM_LOW)
   endtask
 
   //Task for building the buffer

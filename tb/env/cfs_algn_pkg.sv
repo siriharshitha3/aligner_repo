@@ -39,6 +39,10 @@
     `include "../virtual_sequence/cfs_algn_virtual_sequence_slow_pace.sv"
     `include "../virtual_sequence/cfs_algn_virtual_sequence_reg_access_random.sv"
     `include "../virtual_sequence/cfs_algn_virtual_sequence_reg_access_unmapped.sv"
+    `include "../virtual_sequence/cfs_algn_virtual_sequence_reg_config.sv"
+    `include "../virtual_sequence/cfs_algn_virtual_sequence_reg_status.sv"
+    `include "../virtual_sequence/cfs_algn_virtual_sequence_rx.sv"
+    `include "../virtual_sequence/cfs_algn_virtual_sequence_rx_err.sv"
   endpackage
 
 `endif
