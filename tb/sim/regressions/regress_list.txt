@@ -1,0 +1,3 @@
+TESTNAME=cfs_algn_apb_tests_mapped_unmapped 
+TESTNAME=cfs_algn_md_tests_random_traffic   
+TESTNAME=cfs_algn_md_tests_cnt_drop         

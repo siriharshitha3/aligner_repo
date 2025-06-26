@@ -57,4 +57,7 @@ gui:
 clean:
 	rm -rf $(WORKLIB) $(COMP_LOG) $(SIM_LOG) $(TRANSCRIPT) vsim.wlf
 
+regress:
+	./regressions/run_regression.sh
+
 .PHONY: all comp run gui clean
