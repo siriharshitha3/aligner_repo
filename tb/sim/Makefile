@@ -6,10 +6,23 @@ TB_TOP_DIR = ../top
 
 # File list
 TOP_SRCS = $(RTL_DIR)/design.sv $(TB_TOP_DIR)/testbench.sv
+#########################################################
+# # Test and UVM options                                #
+# # Tests available                                     #
+# To run a specific test use the syntac below           #
+# make run TESTNAME=<cfs_algn_md_tests_random_traffic>  #
+#########################################################
+# ###########################
+# # cfs_algn_apb_tests_mapped_unmapped
+# # cfs_algn_md_tests_random_traffic
+# # cfs_algn_md_tests_cnt_drop
+# ###########################
+# Default test if none specified
+DEFAULT_TEST = cfs_algn_apb_tests_mapped_unmapped
+TESTNAME ?= $(DEFAULT_TEST)
 
-# Test and UVM options
-TESTNAME = cfs_algn_test_random
-UVM_ARGS = +UVM_TESTNAME=$(TESTNAME) +UVM_MAX_QUIT_COUNT=1 +uvm_set_verbosity=*,REG_PREDICT,UVM_HIGH,run +access +rw
+# UVM options with dynamic test name and random seed
+UVM_ARGS = +UVM_TESTNAME=$(TESTNAME) +UVM_MAX_QUIT_COUNT=1 +access +rw -f messages.f -sv_seed random
 
 # Simulation libraries
 WORKLIB = work
@@ -32,7 +45,7 @@ comp:
 
 # Run simulation (command-line mode)
 run:
-	@echo "[Running Simulation...]" | tee $(SIM_LOG)
+	@echo "[Running Simulation with TESTNAME=$(TESTNAME)...]" | tee $(SIM_LOG)
 	@vsim -coverage -c -do "run -all; quit" work.testbench $(UVM_ARGS) | tee -a $(SIM_LOG) | tee -a $(TRANSCRIPT)
 
 # Launch GUI with all DUT signals preloaded

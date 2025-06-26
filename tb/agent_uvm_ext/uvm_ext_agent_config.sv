@@ -84,9 +84,9 @@ class uvm_ext_agent_config #(
       `uvm_fatal("ALGORITHM_ISSUE",
                  "The APB virtual interface is not configured at \"Start of simulation\" phase")
     end else begin
-      `uvm_info("APB_CONFIG",
+      `uvm_info("CONFIG",
                 "The APB virtual interface is configured at \"Start of simulation\" phase",
-                UVM_DEBUG)
+                UVM_FULL)
     end
   endfunction
 

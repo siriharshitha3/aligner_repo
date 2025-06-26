@@ -142,9 +142,9 @@ class cfs_algn_env_config extends uvm_component;
       `uvm_fatal("ALGORITHM_ISSUE",
                  "The Aligner virtual interface is not configured at \"Start of simulation\" phase")
     end else begin
-      `uvm_info("ALGN_CONFIG",
-                "The Aligner virtual interface is consifured at \"Start of simulation\" phase",
-                UVM_DEBUG)
+      `uvm_info("CONFIG",
+                "The Aligner virtual interface is configured at \"Start of simulation\" phase",
+                UVM_FULL)
     end
   endfunction
 

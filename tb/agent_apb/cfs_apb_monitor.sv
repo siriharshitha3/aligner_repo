@@ -65,7 +65,7 @@ class cfs_apb_monitor extends uvm_ext_monitor #(
 
     output_port.write(item);
 
-    `uvm_info("DEBUG", $sformatf("Monitored item:: %0s", item.convert2string()), UVM_NONE)
+    `uvm_info("ITEM_END", $sformatf("Monitored item:: %0s", item.convert2string()), UVM_LOW)
 
     @(posedge vif.pclk);
   endtask

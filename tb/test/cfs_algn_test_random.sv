@@ -9,10 +9,15 @@
 
 class cfs_algn_test_random extends cfs_algn_test_base;
 
+  //Number of MD RX transactions
+  protected int unsigned num_md_rx_transactions;
+
   `uvm_component_utils(cfs_algn_test_random)
 
   function new(string name = "", uvm_component parent);
     super.new(name, parent);
+
+    num_md_rx_transactions = 100;
   endfunction
 
   virtual task run_phase(uvm_phase phase);
@@ -22,41 +27,57 @@ class cfs_algn_test_random extends cfs_algn_test_base;
 
     #(100ns);
 
-    //       fork
-    //         begin
-    //           cfs_md_sequence_slave_response_forever seq = cfs_md_sequence_slave_response_forever::type_id::create("seq");
+    fork
+      begin
+        cfs_md_sequence_slave_response_forever seq = cfs_md_sequence_slave_response_forever::type_id::create(
+            "seq"
+        );
 
-    //           seq.start(env.md_tx_agent.sequencer);
-    //         end
-    //       join_none
-
-    env.model.reg_block.IRQEN.write(status, 5'b11111);
-
-    void'(env.model.reg_block.CTRL.randomize());
-    env.model.reg_block.CTRL.update(status);
+        seq.start(env.md_tx_agent.sequencer);
+      end
+    join_none
 
     repeat (2) begin
-      //         cfs_md_sequence_simple_master seq_simple = cfs_md_sequence_simple_master::type_id::create("seq_simple");
-      //         seq_simple.set_sequencer(env.md_rx_agent.sequencer);
+      if (env.model.is_empty()) begin
+        cfs_algn_virtual_sequence_reg_config seq = cfs_algn_virtual_sequence_reg_config::type_id::create(
+            "seq"
+        );
 
-      //         void'(seq_simple.randomize());
+        void'(seq.randomize());
 
-      //         seq_simple.start(env.md_rx_agent.sequencer);
+        seq.start(env.virtual_sequencer);
+      end
 
-      cfs_algn_virtual_sequence_slow_pace seq_slow_pace = cfs_algn_virtual_sequence_slow_pace::type_id::create(
-          "seq_slow_pace"
-      );
+      repeat (num_md_rx_transactions) begin
+        cfs_algn_virtual_sequence_rx seq = cfs_algn_virtual_sequence_rx::type_id::create("seq");
 
-      seq_slow_pace.set_sequencer(env.virtual_sequencer);
+        seq.set_sequencer(env.virtual_sequencer);
 
-      void'(seq_slow_pace.randomize());
+        void'(seq.randomize());
 
-      seq_slow_pace.start(env.virtual_sequencer);
+        seq.start(env.virtual_sequencer);
+      end
+
+      begin
+        cfs_algn_vif vif = env.env_config.get_vif();
+
+        repeat (100) begin
+          @(posedge vif.clk);
+        end
+      end
+
+      begin
+        cfs_algn_virtual_sequence_reg_status seq = cfs_algn_virtual_sequence_reg_status::type_id::create(
+            "seq"
+        );
+
+        void'(seq.randomize());
+
+        seq.start(env.virtual_sequencer);
+      end
     end
 
     #(500ns);
-
-    `uvm_info("DEBUG", "this is the end of the test", UVM_LOW)
 
     phase.drop_objection(this, "TEST_DONE");
   endtask

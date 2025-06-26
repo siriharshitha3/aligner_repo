@@ -23,8 +23,8 @@ class cfs_md_driver_master #(
 
     int unsigned data_width_in_bytes = DATA_WIDTH / 8;
 
-    `uvm_info("DEBUG", $sformatf("Driving \"%0s\": %0s", item.get_full_name(),
-                                 item.convert2string()), UVM_NONE)
+    `uvm_info("ITEM_START", $sformatf("Driving \"%0s\": %0s", item.get_full_name(),
+                                 item.convert2string()), UVM_LOW)
 
     if (item.offset + item.data.size() > data_width_in_bytes) begin
       `uvm_fatal(

@@ -123,7 +123,7 @@ class uvm_ext_coverage #(
     super.report_phase(phase);
 
     //IMPORTANT: DON'T DO THIS IN A REAL PROJECT!!!
-    `uvm_info("DEBUG", $sformatf("Coverage: %0s", coverage2string()), UVM_NONE)
+    `uvm_info("COVERAGE", $sformatf("Coverage: %0s", coverage2string()), UVM_DEBUG)
   endfunction
 
 endclass

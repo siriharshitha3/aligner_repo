@@ -163,7 +163,22 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
     tx_ctrl_nb();
     send_exp_irq_nb();
   endfunction
+  //Function to determine if the model is empty
+  virtual function bit is_empty();
+    if (rx_fifo.used() != 0) begin
+      return 0;
+    end
 
+    if (tx_fifo.used() != 0) begin
+      return 0;
+    end
+
+    if (buffer.size() != 0) begin
+      return 0;
+    end
+
+    return 1;
+  endfunction
   //Get the expected response
   protected virtual function cfs_md_response get_exp_response(cfs_md_item_mon item);
     //Size of the access is 0.
@@ -188,11 +203,11 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
   protected virtual function void set_max_drop();
     void'(reg_block.IRQ.MAX_DROP.predict(1));
 
-    `uvm_info("DEBUG", $sformatf(
+    `uvm_info("CNT_DROP", $sformatf(
               "Drop counter reached max value - %0s: %0d",
               reg_block.IRQEN.MAX_DROP.get_full_name(),
               reg_block.IRQEN.MAX_DROP.get_mirrored_value()
-              ), UVM_NONE)
+              ), UVM_MEDIUM)
 
     if (reg_block.IRQEN.MAX_DROP.get_mirrored_value() == 1) begin
       port_out_irq.write(1);
@@ -211,11 +226,11 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
         void'(reg_block.IRQ.RX_FIFO_FULL.predict(1));
 
-        `uvm_info("DEBUG", $sformatf(
+        `uvm_info("RX_FIFO", $sformatf(
                   "RX FIFO became full - %0s: %0d",
                   reg_block.IRQEN.RX_FIFO_FULL.get_full_name(),
                   reg_block.IRQEN.RX_FIFO_FULL.get_mirrored_value()
-                  ), UVM_NONE)
+                  ), UVM_MEDIUM)
 
         if (reg_block.IRQEN.RX_FIFO_FULL.get_mirrored_value() == 1) begin
           exp_irq = 1;
@@ -238,11 +253,11 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
         void'(reg_block.IRQ.RX_FIFO_EMPTY.predict(1));
 
-        `uvm_info("DEBUG", $sformatf(
+        `uvm_info("RX_FIFO", $sformatf(
                   "RX FIFO became empty - %0s: %0d",
                   reg_block.IRQEN.RX_FIFO_EMPTY.get_full_name(),
                   reg_block.IRQEN.RX_FIFO_EMPTY.get_mirrored_value()
-                  ), UVM_NONE)
+                  ), UVM_MEDIUM)
 
         if (reg_block.IRQEN.RX_FIFO_EMPTY.get_mirrored_value() == 1) begin
           exp_irq = 1;
@@ -265,11 +280,11 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
         void'(reg_block.IRQ.TX_FIFO_FULL.predict(1));
 
-        `uvm_info("DEBUG", $sformatf(
+        `uvm_info("TX_FIFO", $sformatf(
                   "TX FIFO became full - %0s: %0d",
                   reg_block.IRQEN.TX_FIFO_FULL.get_full_name(),
                   reg_block.IRQEN.TX_FIFO_FULL.get_mirrored_value()
-                  ), UVM_NONE)
+                  ), UVM_MEDIUM)
 
         if (reg_block.IRQEN.TX_FIFO_FULL.get_mirrored_value() == 1) begin
           // port_out_irq.write(1);
@@ -293,11 +308,11 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
         void'(reg_block.IRQ.TX_FIFO_EMPTY.predict(1));
 
-        `uvm_info("DEBUG", $sformatf(
+        `uvm_info("TX_FIFO", $sformatf(
                   "TX FIFO became empty - %0s: %0d",
                   reg_block.IRQEN.TX_FIFO_EMPTY.get_full_name(),
                   reg_block.IRQEN.TX_FIFO_EMPTY.get_mirrored_value()
-                  ), UVM_NONE)
+                  ), UVM_MEDIUM)
 
         if (reg_block.IRQEN.TX_FIFO_EMPTY.get_mirrored_value() == 1) begin
           // port_out_irq.write(1);
@@ -650,9 +665,9 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
     inc_rx_lvl();
 
-    `uvm_info("DEBUG", $sformatf("RX FIFO push - new level: %0d, pushed entry: %0s",
-                                 reg_block.STATUS.RX_LVL.get_mirrored_value(),
-                                 item.convert2string()), UVM_NONE)
+    `uvm_info("RX_FIFO", $sformatf("RX FIFO push - new level: %0d, pushed entry: %0s",
+                                   reg_block.STATUS.RX_LVL.get_mirrored_value(),
+                                   item.convert2string()), UVM_LOW)
 
     port_out_rx.write(CFS_MD_OKAY);
   endtask
@@ -667,9 +682,9 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
     dec_rx_lvl();
 
-    `uvm_info("DEBUG", $sformatf("RX FIFO pop - new level: %0d, popped entry: %0s",
-                                 reg_block.STATUS.RX_LVL.get_mirrored_value(),
-                                 item.convert2string()), UVM_NONE)
+    `uvm_info("RX_FIFO", $sformatf("RX FIFO pop - new level: %0d, popped entry: %0s",
+                                   reg_block.STATUS.RX_LVL.get_mirrored_value(),
+                                   item.convert2string()), UVM_LOW)
   endtask
 
   //Task to push to TX FIFO the aligned data
@@ -682,9 +697,9 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
     inc_tx_lvl();
 
-    `uvm_info("DEBUG", $sformatf("TX FIFO push - new level: %0d, pushed entry: %0s",
-                                 reg_block.STATUS.TX_LVL.get_mirrored_value(),
-                                 item.convert2string()), UVM_NONE)
+    `uvm_info("TX_FIFO", $sformatf("TX FIFO push - new level: %0d, pushed entry: %0s",
+                                   reg_block.STATUS.TX_LVL.get_mirrored_value(),
+                                   item.convert2string()), UVM_LOW)
   endtask
 
   //Task to pop from TX FIFO the aligned data
@@ -697,9 +712,9 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
     dec_tx_lvl();
 
-    `uvm_info("DEBUG", $sformatf("TX FIFO pop - new level: %0d, popped entry: %0s",
-                                 reg_block.STATUS.TX_LVL.get_mirrored_value(),
-                                 item.convert2string()), UVM_NONE)
+    `uvm_info("TX_FIFO", $sformatf("TX FIFO pop - new level: %0d, popped entry: %0s",
+                                   reg_block.STATUS.TX_LVL.get_mirrored_value(),
+                                   item.convert2string()), UVM_LOW)
   endtask
 
   //Task for building the buffer

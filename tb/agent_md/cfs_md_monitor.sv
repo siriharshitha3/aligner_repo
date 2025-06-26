@@ -59,7 +59,8 @@ class cfs_md_monitor #(
 
     void'(begin_tr(item));
 
-    //`uvm_info("DEBUG", $sformatf("Monitor started collecting item: %0s", item.convert2string()), UVM_NONE)
+    `uvm_info("ITEM_START", $sformatf("Monitor started collecting item: %0s",
+                                      item.convert2string()), UVM_LOW)
 
     output_port.write(item);
 
@@ -84,7 +85,7 @@ class cfs_md_monitor #(
 
     output_port.write(item);
 
-    `uvm_info("DEBUG", $sformatf("Monitored item: %0s", item.convert2string()), UVM_NONE)
+    `uvm_info("ITEM_END", $sformatf("Monitored item: %0s", item.convert2string()), UVM_LOW)
   endtask
 
 endclass
