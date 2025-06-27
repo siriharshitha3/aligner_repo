@@ -42,8 +42,10 @@
     `include "../virtual_sequence/cfs_algn_virtual_sequence_reg_config.sv"
     `include "../virtual_sequence/cfs_algn_virtual_sequence_reg_status.sv"
     `include "../virtual_sequence/cfs_algn_virtual_sequence_rx.sv"
+    `include "../virtual_sequence/cfs_algn_virtual_sequence_rx_crt.sv"
     `include "../virtual_sequence/cfs_algn_virtual_sequence_rx_err.sv"
     `include "../virtual_sequence/custom_sequences/cfs_algn_virtual_sequence_3_1_1.sv"
+    `include "../virtual_sequence/custom_sequences/cfs_algn_virtual_sequence_3_1_3.sv"
   endpackage
 
 `endif
