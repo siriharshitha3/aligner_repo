@@ -13,9 +13,10 @@ TOP_SRCS = $(RTL_DIR)/design.sv $(TB_TOP_DIR)/testbench.sv
 # make run TESTNAME=<cfs_algn_md_tests_random_traffic>  #
 #########################################################
 # ###########################
-# # cfs_algn_apb_tests_mapped_unmapped
-# # cfs_algn_md_tests_random_traffic
-# # cfs_algn_md_tests_cnt_drop
+#cfs_algn_apb_tests_mapped_unmapped
+#cfs_algn_md_tests_random_traffic
+#cfs_algn_md_tests_cnt_drop
+#cfs_algn_apb_tests_3_1_1
 # ###########################
 # Default test if none specified
 DEFAULT_TEST = cfs_algn_apb_tests_mapped_unmapped
@@ -48,10 +49,9 @@ run:
 	@echo "[Running Simulation with TESTNAME=$(TESTNAME)...]" | tee $(SIM_LOG)
 	@vsim -coverage -c -do "run -all; quit" work.testbench $(UVM_ARGS) | tee -a $(SIM_LOG) | tee -a $(TRANSCRIPT)
 
-# Launch GUI with all DUT signals preloaded
-gui:
-	@echo "[Launching QuestaSim GUI with waveforms...]"
-	@vsim -coverage work.testbench $(UVM_ARGS) -do "do wave.do;"
+grun:
+	@echo "[Running Simulation with TESTNAME=$(TESTNAME) in GUI mode...]" | tee $(SIM_LOG)
+	@vsim -coverage work.testbench $(UVM_ARGS) -do "do wave.do; run -all; quit" | tee -a $(SIM_LOG) | tee -a $(TRANSCRIPT)
 
 # Clean up artifacts
 clean:
