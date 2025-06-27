@@ -24,6 +24,7 @@
     //manual apb tests included below
     `include "../test/apb_tests/cfs_algn_apb_tests_mapped_unmapped.sv"
     `include "../test/apb_tests/cfs_algn_apb_tests_3_1_1.sv"
+    `include "../test/apb_tests/cfs_algn_apb_tests_3_1_3.sv"
 
     //manual md tests included below
     `include "../test/md_tests/cfs_algn_md_tests_random_traffic.sv"
