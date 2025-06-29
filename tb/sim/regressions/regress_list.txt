@@ -1,5 +1,7 @@
 TESTNAME=cfs_algn_apb_tests_mapped_unmapped 
 TESTNAME=cfs_algn_md_tests_random_traffic   
 TESTNAME=cfs_algn_md_tests_cnt_drop
-TESTNAME=CFS_ALGN_APB_TESTS_3_1_1
-TESTNAME=CFS_ALGN_APB_TESTS_3_1_3
+TESTNAME=cfs_algn_apb_tests_3_1_1
+TESTNAME=cfs_algn_apb_tests_3_1_2
+TESTNAME=cfs_algn_apb_tests_3_1_3
+TESTNAME=cfs_algn_apb_tests_3_1_5
