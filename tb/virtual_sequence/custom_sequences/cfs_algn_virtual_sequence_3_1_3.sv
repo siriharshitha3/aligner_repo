@@ -38,6 +38,7 @@ class cfs_algn_virtual_sequence_3_1_3 extends cfs_algn_virtual_sequence_base;
         foreach (fields[i]) begin
           if (i < 5) begin
             fields[i].set(1);
+            //fields[i].set(0);
           end
         end
 

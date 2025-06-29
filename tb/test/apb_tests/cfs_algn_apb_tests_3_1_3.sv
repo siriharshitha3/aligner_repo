@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_algn_apb_tests_3_1_1.sv
+// File:        cfs_algn_apb_tests_3_1_3.sv
 // Author:      Dhanwanth
 // Date:        2025-06-23
 // Description: Test that sets IRQEN.MAX_DROP to 1 and validates CNT_DROP count
@@ -69,21 +69,6 @@ class cfs_algn_apb_tests_3_1_3 extends cfs_algn_test_base;
 
     env.model.reg_block.IRQ.read(status, irq_val, UVM_FRONTDOOR);
     `uvm_info("IRQ_READ", $sformatf("IRQ register value = 0x%0h", irq_val), UVM_LOW)
-    //
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //     // Step 4: Set CLR to 1 to clear the cnt_drop (or) set it to 0 to view
-    //     // that there is no effect on the cnt_drop
-    //     env.model.reg_block.CTRL.CLR.write(status, 0, UVM_FRONTDOOR);
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //     #(200ns);
-    //     //sending traffic again to see how the cnt_drop increments
-    //     for (int i = 0; i < 20; i++) begin
-    //       rx_err_seq2 =
-    //           cfs_algn_virtual_sequence_rx_err::type_id::create($sformatf("rx_err_seq_%0d", i));
-    //       rx_err_seq2.set_sequencer(env.virtual_sequencer);
-    //       void'(rx_err_seq2.randomize());
-    //       rx_err_seq2.start(env.virtual_sequencer);
-    //     end
 
     #(500ns);
 

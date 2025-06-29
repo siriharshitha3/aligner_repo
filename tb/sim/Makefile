@@ -23,7 +23,7 @@ DEFAULT_TEST = cfs_algn_apb_tests_mapped_unmapped
 TESTNAME ?= $(DEFAULT_TEST)
 
 # UVM options with dynamic test name and random seed
-UVM_ARGS = +UVM_TESTNAME=$(TESTNAME) +UVM_MAX_QUIT_COUNT=1 +access +rw -f messages.f -sv_seed random
+UVM_ARGS = +UVM_TESTNAME=$(TESTNAME) +UVM_MAX_QUIT_COUNT=1 +access +rw -f messages.f -sv_seed random 
 
 # Simulation libraries
 WORKLIB = work
