@@ -9,3 +9,4 @@
 +uvm_set_verbosity=*,RX_FIFO,UVM_HIGH,time,0 
 +uvm_set_verbosity=*,TX_FIFO,UVM_HIGH,time,0
 +uvm_set_verbosity=*,CNT_DROP,UVM_HIGH,time,0 
++uvm_set_verbosity=*,FIFO_LEVELS,UVM_HIGH,time,0 

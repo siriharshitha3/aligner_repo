@@ -1,9 +1,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // File:        cfs_algn_virtual_sequence_rx_crt.sv
-// Author:      Cristian Florin Slav
+// Author:      Dhanwanth
 // Date:        2025-02-12
-// Description: Virtual sequence which sends only one MD RX transaction and 
+// Description: Virtual sequence which sends only one MD RX transaction and
 //              constraints the MD transaction to always be not illegal.
 ///////////////////////////////////////////////////////////////////////////////
 
