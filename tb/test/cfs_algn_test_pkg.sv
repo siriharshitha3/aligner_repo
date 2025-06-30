@@ -26,6 +26,7 @@
     `include "../test/apb_tests/cfs_algn_apb_tests_3_1_1.sv"
     `include "../test/apb_tests/cfs_algn_apb_tests_3_1_2.sv"
     `include "../test/apb_tests/cfs_algn_apb_tests_3_1_3.sv"
+    `include "../test/apb_tests/cfs_algn_apb_tests_3_1_4.sv"
     `include "../test/apb_tests/cfs_algn_apb_tests_3_1_5.sv"
 
     //manual md tests included below

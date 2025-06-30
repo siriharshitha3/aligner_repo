@@ -4,4 +4,5 @@ TESTNAME=cfs_algn_md_tests_cnt_drop
 TESTNAME=cfs_algn_apb_tests_3_1_1
 TESTNAME=cfs_algn_apb_tests_3_1_2
 TESTNAME=cfs_algn_apb_tests_3_1_3
+TESTNAME=cfs_algn_apb_tests_3_1_4
 TESTNAME=cfs_algn_apb_tests_3_1_5

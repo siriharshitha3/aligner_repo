@@ -2,9 +2,7 @@
 // File:        cfs_algn_apb_tests_3_1_3.sv
 // Author:      Dhanwanth
 // Date:        2025-06-23
-// Description: Test that sets IRQEN.MAX_DROP to 1 and validates CNT_DROP count
-//              Writing 0 into the cnt drop has no effect whereas write 1 will
-//              clear the cnt drop.
+// Description: Verify that the access type of IRQEN is RW and IRQ is W1C
 ///////////////////////////////////////////////////////////////////////////////
 `ifndef CFS_ALGN_APB_TESTS_3_1_3_SV
 `define CFS_ALGN_APB_TESTS_3_1_3_SV
@@ -50,7 +48,7 @@ class cfs_algn_apb_tests_3_1_3 extends cfs_algn_test_base;
     vif = env.env_config.get_vif();
     repeat (50) @(posedge vif.clk);
 
-    // Step 3: Send 20 illegal RX packets
+    // Step 3: Send 20 legal RX packets
     for (int i = 0; i < 10; i++) begin
       rx_seq = cfs_algn_virtual_sequence_rx_crt::type_id::create($sformatf("rx_seq_%0d", i));
       rx_seq.set_sequencer(env.virtual_sequencer);

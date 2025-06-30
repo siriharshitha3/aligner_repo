@@ -10,13 +10,20 @@ TOP_SRCS = $(RTL_DIR)/design.sv $(TB_TOP_DIR)/testbench.sv
 # # Test and UVM options                                #
 # # Tests available                                     #
 # To run a specific test use the syntac below           #
-# make run TESTNAME=<cfs_algn_md_tests_random_traffic>  #
+# make run TESTNAME=<cfs_algn_md_tests_random_traffic>
+#
+# Use the below command to run with gui and view waveforms
+# make grun TESTNAME=<cfs_algn_md_tests_random_traffic>  #
 #########################################################
 # ###########################
 #cfs_algn_apb_tests_mapped_unmapped
 #cfs_algn_md_tests_random_traffic
 #cfs_algn_md_tests_cnt_drop
 #cfs_algn_apb_tests_3_1_1
+#cfs_algn_apb_tests_3_1_2
+#cfs_algn_apb_tests_3_1_3
+#cfs_algn_apb_tests_3_1_4
+#cfs_algn_apb_tests_3_1_5
 # ###########################
 # Default test if none specified
 DEFAULT_TEST = cfs_algn_apb_tests_mapped_unmapped
