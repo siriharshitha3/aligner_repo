@@ -38,12 +38,15 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
 
   //Model of the RX FIFO
   protected uvm_tlm_fifo #(cfs_md_item_mon) rx_fifo;
+  //uvm_tlm_fifo #(cfs_md_item_mon) rx_fifo;
 
   //Model of the TX FIFO
   protected uvm_tlm_fifo #(cfs_md_item_mon) tx_fifo;
+  //uvm_tlm_fifo #(cfs_md_item_mon) tx_fifo;
 
   //Intermediate buffer containing information ready to be aligned
   protected cfs_md_item_mon buffer[$];
+  //cfs_md_item_mon buffer[$];
 
   //Event to synchronize the completing of the TX transaction
   protected uvm_event tx_complete;

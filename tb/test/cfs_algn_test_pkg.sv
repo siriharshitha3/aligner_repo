@@ -32,6 +32,8 @@
     //manual md tests included below
     `include "../test/md_tests/cfs_algn_md_tests_random_traffic.sv"
     `include "../test/md_tests/cfs_algn_md_tests_cnt_drop.sv"
+    `include "../test/md_tests/cfs_algn_md_tests_3_2_1.sv"
+    `include "../test/md_tests/cfs_algn_md_tests_3_2_2.sv"
   endpackage
 
 `endif
