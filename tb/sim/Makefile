@@ -24,6 +24,7 @@ TOP_SRCS = $(RTL_DIR)/design.sv $(TB_TOP_DIR)/testbench.sv
 #cfs_algn_apb_tests_3_1_3
 #cfs_algn_apb_tests_3_1_4
 #cfs_algn_apb_tests_3_1_5
+#cfs_algn_md_tests_3_2_1
 # ###########################
 # Default test if none specified
 DEFAULT_TEST = cfs_algn_apb_tests_mapped_unmapped

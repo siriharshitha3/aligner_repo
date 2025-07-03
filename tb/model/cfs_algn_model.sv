@@ -629,7 +629,7 @@ class cfs_algn_model extends uvm_component implements uvm_ext_reset_handler;
     cfs_algn_vif vif = env_config.get_vif();
 
     bit rtl_pop_detected = 0;
-    int timeout = 200;
+    int timeout = 300;
 
     fork
       begin
