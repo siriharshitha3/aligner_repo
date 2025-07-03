@@ -1,15 +1,15 @@
 ///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_algn_md_tests_3_2_2.sv
+// File:        cfs_algn_md_tests_3_2_4.sv
 // Author:      Dhanwanth
 // Date:        2025-06-23
-// Description: Verifying design behaviour to reception of valid & invalid packets alternatively or interleaved.
+// Description: To check is the controller can buffer data before sending it into the TX_FIFO
 ///////////////////////////////////////////////////////////////////////////////
-`ifndef CFS_ALGN_MD_TESTS_3_2_2_SV
-`define CFS_ALGN_MD_TESTS_3_2_2_SV
+`ifndef CFS_ALGN_MD_TESTS_3_2_4_SV
+`define CFS_ALGN_MD_TESTS_3_2_4_SV
 
-class cfs_algn_md_tests_3_2_2 extends cfs_algn_test_base;
+class cfs_algn_md_tests_3_2_4 extends cfs_algn_test_base;
 
-  `uvm_component_utils(cfs_algn_md_tests_3_2_2)
+  `uvm_component_utils(cfs_algn_md_tests_3_2_4)
 
   function new(string name = "", uvm_component parent);
     super.new(name, parent);
@@ -19,7 +19,7 @@ class cfs_algn_md_tests_3_2_2 extends cfs_algn_test_base;
     cfs_md_sequence_slave_response_forever resp_seq;
     cfs_algn_virtual_sequence_reg_config cfg_seq;
     cfs_algn_virtual_sequence_rx_crt1 rx_seq1;
-    cfs_algn_virtual_sequence_rx_err rx_err_seq;
+    // cfs_algn_virtual_sequence_rx_err rx_err_seq2;
     cfs_algn_vif vif;
 
     uvm_reg_data_t reg_val;
@@ -44,21 +44,17 @@ class cfs_algn_md_tests_3_2_2 extends cfs_algn_test_base;
     vif = env.env_config.get_vif();
     repeat (50) @(posedge vif.clk);
 
-    // env.model.reg_block.CTRL.write(status, 32'h00000004, UVM_FRONTDOOR);
-    // env.model.reg_block.CTRL.read(status, reg_val, UVM_FRONTDOOR);
-    // #(100ns);
+    env.model.reg_block.CTRL.write(status, 32'h00000004, UVM_FRONTDOOR);
+    env.model.reg_block.CTRL.read(status, reg_val, UVM_FRONTDOOR);
+    #(100ns);
 
-    for (int i = 0; i < 10; i++) begin
+    for (int i = 0; i < 8; i++) begin
       rx_seq1 = cfs_algn_virtual_sequence_rx_crt1::type_id::create($sformatf("rx_seq1_%0d", i));
       rx_seq1.set_sequencer(env.virtual_sequencer);
       void'(rx_seq1.randomize());
+      $display("\n*************************************************Sending %0d/8th packet*********************************************\n", i + 1);
       rx_seq1.start(env.virtual_sequencer);
       #(50ns);
-      rx_err_seq = cfs_algn_virtual_sequence_rx_err::type_id::create($sformatf("rx_err_seq_%0d", i));
-      rx_err_seq.set_sequencer(env.virtual_sequencer);
-      void'(rx_err_seq.randomize());
-      rx_err_seq.start(env.virtual_sequencer);
-
     end
 
     #(100ns);

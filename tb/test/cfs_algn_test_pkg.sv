@@ -34,6 +34,18 @@
     `include "../test/md_tests/cfs_algn_md_tests_cnt_drop.sv"
     `include "../test/md_tests/cfs_algn_md_tests_3_2_1.sv"
     `include "../test/md_tests/cfs_algn_md_tests_3_2_2.sv"
+    `include "../test/md_tests/cfs_algn_md_tests_3_2_3.sv"
+    `include "../test/md_tests/cfs_algn_md_tests_3_2_4.sv"
+
+    //manual interrupt tests
+    `include "../test/intr_tests/cfs_algn_intr_tests_3_3_1.sv"
+    `include "../test/intr_tests/cfs_algn_intr_tests_3_3_2.sv"
+    `include "../test/intr_tests/cfs_algn_intr_tests_3_3_3.sv"
+    `include "../test/intr_tests/cfs_algn_intr_tests_3_3_4.sv"
+    `include "../test/intr_tests/cfs_algn_intr_tests_3_3_5.sv"
+    `include "../test/intr_tests/cfs_algn_intr_tests_3_3_7.sv"
+    `include "../test/intr_tests/cfs_algn_intr_tests_3_3_8.sv"
+
   endpackage
 
 `endif

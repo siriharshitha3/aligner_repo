@@ -7,7 +7,7 @@
 +uvm_set_verbosity=*md_rx_agent.monitor*,ITEM_END,UVM_LOW,time,0
 
 //+uvm_set_verbosity=*md_*agent.driver*,ITEM_START,UVM_LOW,time,0
-//+uvm_set_verbosity=*,RX_FIFO,UVM_HIGH,time,0 
-//+uvm_set_verbosity=*,TX_FIFO,UVM_HIGH,time,0
-//+uvm_set_verbosity=*,CNT_DROP,UVM_HIGH,time,0 
++uvm_set_verbosity=*,RX_FIFO,UVM_HIGH,time,0 
++uvm_set_verbosity=*,TX_FIFO,UVM_HIGH,time,0
++uvm_set_verbosity=*,CNT_DROP,UVM_HIGH,time,0 
 //+uvm_set_verbosity=*,FIFO_LEVELS,UVM_HIGH,time,0 
