@@ -4,7 +4,9 @@ rm -f logs/*.log
 # Path to test list and logs
 REGRESS_FILE="regressions/regress_list.txt"
 LOG_DIR="logs"
-mkdir -p "$LOG_DIR"
+UCDB_DIR="ucdb"
+mkdir -p "$LOG_DIR" "$UCDB_DIR"
+rm -f "$UCDB_DIR"/*.ucdb
 
 # Clean previous logs (optional)
 # rm -f $LOG_DIR/*.log

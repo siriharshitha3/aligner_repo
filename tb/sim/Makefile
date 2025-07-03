@@ -41,6 +41,9 @@ COMP_LOG = compile.log
 SIM_LOG = sim.log
 TRANSCRIPT = transcript
 
+UCDB_DIR = ./ucdb
+UCDB_FILE = $(UCDB_DIR)/$(TESTNAME).ucdb
+
 # Default target
 all: comp run
 
@@ -54,8 +57,11 @@ comp:
 
 # Run simulation (command-line mode)
 run:
+	@mkdir -p $(UCDB_DIR)
 	@echo "[Running Simulation with TESTNAME=$(TESTNAME)...]" | tee $(SIM_LOG)
-	@vsim -coverage -c -do "run -all; quit" work.testbench $(UVM_ARGS) | tee -a $(SIM_LOG) | tee -a $(TRANSCRIPT)
+	@vsim -coverage -c work.testbench $(UVM_ARGS) \
+	 -do "coverage save -onexit $(UCDB_FILE); run -all; quit" \
+	 | tee -a $(SIM_LOG) | tee -a $(TRANSCRIPT)
 
 grun:
 	@echo "[Running Simulation with TESTNAME=$(TESTNAME) in GUI mode...]" | tee $(SIM_LOG)
