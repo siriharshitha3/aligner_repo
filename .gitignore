@@ -21,4 +21,4 @@ tr_db.log
 /ucdb/*.ucdb
 
 # In .gitignore
-/ucdb/coverage_report/*
+/ucdb/coverage_report/
