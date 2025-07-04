@@ -19,3 +19,6 @@ tr_db.log
 
 # Ignore UCDB files inside ucdb directory
 /ucdb/*.ucdb
+
+# In .gitignore
+/ucdb/coverage_report/
