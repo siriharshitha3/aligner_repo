@@ -41,6 +41,9 @@ COMP_LOG = compile.log
 SIM_LOG = sim.log
 TRANSCRIPT = transcript
 
+UCDB_DIR = ./ucdb
+UCDB_FILE = $(UCDB_DIR)/$(TESTNAME).ucdb
+
 # Default target
 all: comp run
 
@@ -54,8 +57,11 @@ comp:
 
 # Run simulation (command-line mode)
 run:
+	@mkdir -p $(UCDB_DIR)
 	@echo "[Running Simulation with TESTNAME=$(TESTNAME)...]" | tee $(SIM_LOG)
-	@vsim -coverage -c -do "run -all; quit" work.testbench $(UVM_ARGS) | tee -a $(SIM_LOG) | tee -a $(TRANSCRIPT)
+	@vsim -coverage -c work.testbench $(UVM_ARGS) \
+	 -do "coverage save -onexit $(UCDB_FILE); run -all; quit" \
+	 | tee -a $(SIM_LOG) | tee -a $(TRANSCRIPT)
 
 grun:
 	@echo "[Running Simulation with TESTNAME=$(TESTNAME) in GUI mode...]" | tee $(SIM_LOG)
@@ -64,8 +70,18 @@ grun:
 # Clean up artifacts
 clean:
 	rm -rf $(WORKLIB) $(COMP_LOG) $(SIM_LOG) $(TRANSCRIPT) vsim.wlf
+	rm -rf $(UCDB_DIR)/*.ucdb $(UCDB_DIR)/merged.ucdb $(UCDB_DIR)/coverage_report
 
 regress:
 	./regressions/run_regression.sh
 
-.PHONY: all comp run gui clean
+# Merge all .ucdb files in UCDB_DIR
+report:
+	@echo "[Merging UCDB files into $(UCDB_DIR)/merged.ucdb]"
+	@vcover merge $(UCDB_DIR)/merged.ucdb $(shell find $(UCDB_DIR) -name '*.ucdb' ! -name 'merged.ucdb')
+	@echo "[Generating HTML coverage report in $(UCDB_DIR)/coverage_report]"
+	@vcover report -html -output $(UCDB_DIR)/coverage_report -details -verbose $(UCDB_DIR)/merged.ucdb
+	@echo "[Opening HTML report with Firefox...]"
+	@firefox $(UCDB_DIR)/coverage_report/index.html >/dev/null 2>&1 || echo "Please open $(UCDB_DIR)/coverage_report/index.html manually."
+
+.PHONY: all comp run grun clean regress cmerge report

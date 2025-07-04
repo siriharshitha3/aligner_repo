@@ -5,6 +5,7 @@ transcript
 vsim.wlf
 *.vstf
 *.log
+*.ucdb
 
 # Ignore Questa libraries
 work/
@@ -15,3 +16,6 @@ dump.vcd
 
 # Ignore trace/debug db
 tr_db.log
+
+# Ignore UCDB files inside ucdb directory
+/ucdb/*.ucdb
