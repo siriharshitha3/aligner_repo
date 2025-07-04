@@ -70,8 +70,18 @@ grun:
 # Clean up artifacts
 clean:
 	rm -rf $(WORKLIB) $(COMP_LOG) $(SIM_LOG) $(TRANSCRIPT) vsim.wlf
+	rm -rf $(UCDB_DIR)/*.ucdb $(UCDB_DIR)/merged.ucdb $(UCDB_DIR)/coverage_report
 
 regress:
 	./regressions/run_regression.sh
 
-.PHONY: all comp run gui clean
+# Merge all .ucdb files in UCDB_DIR
+report:
+	@echo "[Merging UCDB files into $(UCDB_DIR)/merged.ucdb]"
+	@vcover merge $(UCDB_DIR)/merged.ucdb $(shell find $(UCDB_DIR) -name '*.ucdb' ! -name 'merged.ucdb')
+	@echo "[Generating HTML coverage report in $(UCDB_DIR)/coverage_report]"
+	@vcover report -html -output $(UCDB_DIR)/coverage_report -details -verbose $(UCDB_DIR)/merged.ucdb
+	@echo "[Opening HTML report with Firefox...]"
+	@firefox $(UCDB_DIR)/coverage_report/index.html >/dev/null 2>&1 || echo "Please open $(UCDB_DIR)/coverage_report/index.html manually."
+
+.PHONY: all comp run grun clean regress cmerge report
