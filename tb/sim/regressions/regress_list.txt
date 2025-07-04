@@ -11,7 +11,6 @@ TESTNAME=cfs_algn_intr_tests_3_3_2
 TESTNAME=cfs_algn_intr_tests_3_3_3
 TESTNAME=cfs_algn_intr_tests_3_3_4
 TESTNAME=cfs_algn_intr_tests_3_3_5
-TESTNAME=cfs_algn_intr_tests_3_3_5
 TESTNAME=cfs_algn_intr_tests_3_3_7
 TESTNAME=cfs_algn_intr_tests_3_3_8
 TESTNAME=cfs_algn_apb_tests_mapped_unmapped
