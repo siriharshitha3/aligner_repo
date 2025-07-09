@@ -1,15 +1,15 @@
 ///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_algn_error_tests_3_4_1.sv
+// File:        cfs_algn_error_tests_3_4_2.sv
 // Author:      Dhanwanth
 // Date:        2025-06-23
-// Description: Illegal transfer detection
+// Description: Illegal write - write to status register which is read-only
 ///////////////////////////////////////////////////////////////////////////////
-`ifndef CFS_ALGN_ERROR_TESTS_3_4_1_SV
-`define CFS_ALGN_ERROR_TESTS_3_4_1_SV
+`ifndef CFS_ALGN_ERROR_TESTS_3_4_2_SV
+`define CFS_ALGN_ERROR_TESTS_3_4_2_SV
 
-class cfs_algn_error_tests_3_4_1 extends cfs_algn_test_base;
+class cfs_algn_error_tests_3_4_2 extends cfs_algn_test_base;
 
-  `uvm_component_utils(cfs_algn_error_tests_3_4_1)
+  `uvm_component_utils(cfs_algn_error_tests_3_4_2)
 
   function new(string name = "", uvm_component parent);
     super.new(name, parent);
@@ -22,7 +22,7 @@ class cfs_algn_error_tests_3_4_1 extends cfs_algn_test_base;
     cfs_algn_virtual_sequence_rx_err err_seq;
     cfs_algn_vif vif;
 
-    uvm_reg_data_t irq_val;
+    uvm_reg_data_t reg_val;
     uvm_status_e status;
     uvm_reg_field irq_fields[$];
 
@@ -48,24 +48,15 @@ class cfs_algn_error_tests_3_4_1 extends cfs_algn_test_base;
     vif = env.env_config.get_vif();
     repeat (50) @(posedge vif.clk);
 
-    for (int i = 0; i < 255; i++) begin
-      err_seq = cfs_algn_virtual_sequence_rx_err::type_id::create($sformatf("err_seq_%0d", i));
-      err_seq.set_sequencer(env.virtual_sequencer);
-      void'(err_seq.randomize());
-      err_seq.start(env.virtual_sequencer);
-    end
-
+    env.model.reg_block.STATUS.write(status, 32'h00000004, UVM_FRONTDOOR);
+    env.model.reg_block.STATUS.read(status, reg_val, UVM_FRONTDOOR);
+    ////////////////////////////////////////////////////////////////////////
+    // If you observe the log you will notice that the write into the status
+    // register will not take place because it is an illegal write. If we
+    // uncomment the respective uvm_info_key we will see that its a illegal
+    // write
+    ///////////////////////////////////////////////////////////////////////
     #(100ns);
-
-
-    // Step 4: Read all fields of the IRQ register
-    // env.model.reg_block.IRQ.read(status, irq_val, UVM_FRONTDOOR);
-    // `uvm_info("IRQ_READ", $sformatf("IRQ register value = 0x%0h", irq_val), UVM_LOW)
-    //
-    // env.model.reg_block.IRQ.TX_FIFO_FULL.write(status, 1, UVM_FRONTDOOR);
-    //
-    // env.model.reg_block.IRQ.read(status, irq_val, UVM_FRONTDOOR);
-    // `uvm_info("IRQ_READ", $sformatf("IRQ register value = 0x%0h", irq_val), UVM_LOW)
 
     #(500ns);
 

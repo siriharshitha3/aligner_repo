@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// File:        cfs_algn_apb_tests_mapped_unmapped.sv
+// File:        cfs_algn_apb_tests_mapped_unmapped.sv - SAME AS 3.4.3
 // Author:      Dhanwanth Rao
 // Date:        2023-06-27
 // Description: Register access test. It targets APB accesses to the registers
